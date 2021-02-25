@@ -1,18 +1,52 @@
-
-
-func main() -> Void {
+func main() {
   Test.reset(suiteName: "LexerTest")
 
   test("next token") {
-    let input = "=+(){},;"
+    let input = """
+      let five = 5;
+      let ten = 10;
+      let add = fn(x, y) {
+        x + y;
+      };
+      let result = add(five, ten);
+      """
+
     let tests: [(TokenType, String)] = [
+      (.LET, "let"),
+      (.IDENT, "five"),
       (.ASSIGN, "="),
-      (.PLUS, "+"),
+      (.INT, "5"),
+      (.SEMICOLON, ";"),
+      (.LET, "let"),
+      (.IDENT, "ten"),
+      (.ASSIGN, "="),
+      (.INT, "10"),
+      (.SEMICOLON, ";"),
+      (.LET, "let"),
+      (.IDENT, "add"),
+      (.ASSIGN, "="),
+      (.FUNCTION, "fn"),
       (.LPAREN, "("),
+      (.IDENT, "x"),
+      (.COMMA, ","),
+      (.IDENT, "y"),
       (.RPAREN, ")"),
       (.LBRACE, "{"),
+      (.IDENT, "x"),
+      (.PLUS, "+"),
+      (.IDENT, "y"),
+      (.SEMICOLON, ";"),
       (.RBRACE, "}"),
+      (.SEMICOLON, ";"),
+      (.LET, "let"),
+      (.IDENT, "result"),
+      (.ASSIGN, "="),
+      (.IDENT, "add"),
+      (.LPAREN, "("),
+      (.IDENT, "five"),
       (.COMMA, ","),
+      (.IDENT, "ten"),
+      (.RPAREN, ")"),
       (.SEMICOLON, ";"),
       (.EOF, ""),
     ]
@@ -28,4 +62,3 @@ func main() -> Void {
 
   Test.report()
 }
-

@@ -6,28 +6,32 @@ struct Test {
   static var failMessages: [String] = []
   static var passMessages: [String] = []
 
-  static func reset(suiteName suite: String?) -> Void {
-     Test.suite = suite ?? "<suite:none>"
-     current = "<test:none>"
-     numFails = 0
-     numPasses = 0
-     failMessages = []
-     passMessages = []
+  static func reset(suiteName suite: String?) {
+    Test.suite = suite ?? "<suite:none>"
+    current = "<test:none>"
+    numFails = 0
+    numPasses = 0
+    failMessages = []
+    passMessages = []
   }
 
-  static func pushFail(_ msg: String) -> Void {
-    numFails += 1;
+  static func pushFail(_ msg: String) {
+    numFails += 1
     failMessages.append("X: (\(suite) -> \(current)) -- \(msg)")
   }
 
-  static func pushPass() -> Void {
+  static func pushPass() {
     numPasses += 1
     passMessages.append("√: (\(suite) -> \(current))")
   }
 
-  static func report() -> Void {
-    passMessages.forEach { print($0.green )}
-    failMessages.forEach { print($0.red )}
+  static func report() {
+    passMessages.forEach { _ in print("•".green, terminator: "") }
+    if numFails > 0 {
+      print("")
+    }
+    failMessages.forEach { print($0.red) }
+    print("")
   }
 }
 
@@ -39,7 +43,7 @@ struct Expectation {
       Test.pushFail("`actual` val was not string, got type=\(type(of: self.actual))")
       return
     }
-    if (actual != expected) {
+    if actual != expected {
       Test.pushFail("expected (String) \"\(expected)\", got \"\(actual)\"")
       return
     }
@@ -51,7 +55,7 @@ struct Expectation {
       Test.pushFail("`actual` val was not TokenType, got type=\(type(of: self.actual))")
       return
     }
-    if (actual.rawValue != expected.rawValue) {
+    if actual.rawValue != expected.rawValue {
       Test.pushFail("expected (TokenType) \"\(expected.rawValue)\", got \"\(actual.rawValue)\"")
       return
     }

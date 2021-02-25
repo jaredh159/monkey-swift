@@ -1,0 +1,8 @@
+{
+  "name": "monkey-swift",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "format": "swift-format --configuration .swift-format.json -r -i ."
+  }
+}
