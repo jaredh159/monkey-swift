@@ -32,6 +32,8 @@ struct Test {
     }
     failMessages.forEach { print($0.red) }
     print("")
+
+    print("\(numPasses) passed ".green, "\(numFails) failed\n".red)
   }
 }
 

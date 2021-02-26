@@ -7,6 +7,11 @@ class Lexer {
   private static var keywords: [String: TokenType] = [
     "fn": .FUNCTION,
     "let": .LET,
+    "true": .TRUE,
+    "false": .FALSE,
+    "if": .IF,
+    "else": .ELSE,
+    "return": .RETURN,
   ]
 
   init(_ input: String) {
@@ -15,51 +20,67 @@ class Lexer {
   }
 
   func nextToken() -> Token {
-    var tok = Token(type: .ILLEGAL, literal: "")
+    defer { readChar() }
     skipWhitespace()
     switch ch {
+      case "=" where peekChar() == "=":
+        return Token(type: .EQ, literal: "=" + String(readChar()))
       case "=":
-        tok = Token(type: .ASSIGN, literal: ch)
+        return Token(type: .ASSIGN, literal: ch)
       case ";":
-        tok = Token(type: .SEMICOLON, literal: ch)
+        return Token(type: .SEMICOLON, literal: ch)
       case "(":
-        tok = Token(type: .LPAREN, literal: ch)
+        return Token(type: .LPAREN, literal: ch)
       case ")":
-        tok = Token(type: .RPAREN, literal: ch)
+        return Token(type: .RPAREN, literal: ch)
       case ",":
-        tok = Token(type: .COMMA, literal: ch)
+        return Token(type: .COMMA, literal: ch)
       case "+":
-        tok = Token(type: .PLUS, literal: ch)
+        return Token(type: .PLUS, literal: ch)
       case "{":
-        tok = Token(type: .LBRACE, literal: ch)
+        return Token(type: .LBRACE, literal: ch)
       case "}":
-        tok = Token(type: .RBRACE, literal: ch)
+        return Token(type: .RBRACE, literal: ch)
+      case "!" where peekChar() == "=":
+        return Token(type: .NOT_EQ, literal: "!" + String(readChar()))
+      case "!":
+        return Token(type: .BANG, literal: ch)
+      case "*":
+        return Token(type: .ASTERISK, literal: ch)
+      case "/":
+        return Token(type: .SLASH, literal: ch)
+      case "-":
+        return Token(type: .MINUS, literal: ch)
+      case "<":
+        return Token(type: .LT, literal: ch)
+      case ">":
+        return Token(type: .GT, literal: ch)
       case "\0":
-        tok = Token(type: .EOF, literal: "")
+        return Token(type: .EOF, literal: "")
       case let digit where digit.isNumber:
-        tok = Token(type: .INT, literal: readNumber())
+        return Token(type: .INT, literal: readNumber())
       case let letter where isLetter(letter):
         let literal = readIdentifier()
-        tok = Token(type: identType(literal), literal: literal)
+        return Token(type: identType(literal), literal: literal)
       default:
-        tok = Token(type: .ILLEGAL, literal: "")
+        return Token(type: .ILLEGAL, literal: "")
     }
-    readChar()
-    return tok
   }
 
   @discardableResult
   private func readChar(advance: Bool = true) -> Character {
-    if readPosition >= input.count {
-      ch = "\0"
-    } else {
-      ch = input[input.index(input.startIndex, offsetBy: readPosition)]
+    var read: Character = "\0"
+    if readPosition < input.count {
+      read = input[input.index(input.startIndex, offsetBy: readPosition)]
     }
+
     if advance {
+      ch = read
       position += 1
       readPosition += 1
     }
-    return ch
+
+    return read
   }
 
   private func peekChar() -> Character {

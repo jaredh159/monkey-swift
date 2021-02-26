@@ -9,6 +9,15 @@ func main() {
         x + y;
       };
       let result = add(five, ten);
+      !-/*5;
+      5 < 10 > 5;
+      true
+      false
+      if 
+      else
+      return
+      ==
+      !=
       """
 
     let tests: [(TokenType, String)] = [
@@ -48,6 +57,25 @@ func main() {
       (.IDENT, "ten"),
       (.RPAREN, ")"),
       (.SEMICOLON, ";"),
+      (.BANG, "!"),
+      (.MINUS, "-"),
+      (.SLASH, "/"),
+      (.ASTERISK, "*"),
+      (.INT, "5"),
+      (.SEMICOLON, ";"),
+      (.INT, "5"),
+      (.LT, "<"),
+      (.INT, "10"),
+      (.GT, ">"),
+      (.INT, "5"),
+      (.SEMICOLON, ";"),
+      (.TRUE, "true"),
+      (.FALSE, "false"),
+      (.IF, "if"),
+      (.ELSE, "else"),
+      (.RETURN, "return"),
+      (.EQ, "=="),
+      (.NOT_EQ, "!="),
       (.EOF, ""),
     ]
 
@@ -55,6 +83,7 @@ func main() {
 
     for (expectedType, expectedLiteral) in tests {
       let token = lexer.nextToken()
+      // print(token)
       expect(token.type).toEqual(expectedType)
       expect(token.literal).toEqual(expectedLiteral)
     }

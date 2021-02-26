@@ -13,6 +13,19 @@ public enum TokenType: String {
   case RBRACE
   case FUNCTION
   case LET
+  case MINUS
+  case BANG
+  case ASTERISK
+  case SLASH
+  case LT
+  case GT
+  case TRUE
+  case FALSE
+  case IF
+  case ELSE
+  case RETURN
+  case EQ
+  case NOT_EQ
 }
 
 public struct Token {
