@@ -1,4 +1,4 @@
-public enum TokenType: String {
+public enum TokenType: String, CustomStringConvertible {
   case ILLEGAL
   case EOF
   case IDENT
@@ -26,6 +26,10 @@ public enum TokenType: String {
   case RETURN
   case EQ
   case NOT_EQ
+
+  public var description: String {
+    return "." + self.rawValue
+  }
 }
 
 public struct Token {
