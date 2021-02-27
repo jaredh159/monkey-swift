@@ -1,5 +1,5 @@
 struct Repl {
-  
+
   static func welcome() {
     print("Welcome to MONKEY".magenta)
     print("Try out the language below\n".gray)

@@ -38,34 +38,83 @@ struct Test {
 }
 
 struct Expectation {
-  let actual: Any
+  let actual: Any?
 
-  func toEqual(_ expected: String) {
+  @discardableResult
+  func toEqual(_ expected: Int) -> Bool {
+    guard let actual = actual as? Int else {
+      Test.pushFail("`actual` val was not Int, got type=\(type(of: self.actual))")
+      return false
+    }
+    if actual != expected {
+      Test.pushFail("expected (Int) \"\(expected)\", got \"\(actual)\"")
+      return false
+    }
+    Test.pushPass()
+    return true
+  }
+
+  @discardableResult
+  func toEqual(_ expected: String) -> Bool {
     guard let actual = actual as? String else {
-      Test.pushFail("`actual` val was not string, got type=\(type(of: self.actual))")
-      return
+      Test.pushFail("`actual` val was not String, got type=\(type(of: self.actual))")
+      return false
     }
     if actual != expected {
       Test.pushFail("expected (String) \"\(expected)\", got \"\(actual)\"")
-      return
+      return false
     }
     Test.pushPass()
+    return true
   }
 
-  func toEqual(_ expected: TokenType) {
+  @discardableResult
+  func toEqual(_ expected: TokenType) -> Bool {
     guard let actual = actual as? TokenType else {
       Test.pushFail("`actual` val was not TokenType, got type=\(type(of: self.actual))")
-      return
+      return false
     }
     if actual.rawValue != expected.rawValue {
       Test.pushFail("expected (TokenType) \"\(expected.rawValue)\", got \"\(actual.rawValue)\"")
-      return
+      return false
     }
     Test.pushPass()
+    return true
+  }
+
+  @discardableResult
+  func toBe<T>(_ expectedType: T.Type) -> T? {
+    guard let knownType = actual as? T else {
+      Test.pushFail(
+        "expected `actual` to be type=\(expectedType.self), got=\(type(of: self.actual))")
+      return nil
+    }
+    Test.pushPass()
+    return knownType
+  }
+
+  @discardableResult
+  func toBeNil() -> Any? {
+    if actual != nil {
+      Test.pushFail("expected `actual` to be `nil`, got type=\(type(of: self.actual))")
+      return Optional.some(actual!)
+    }
+    Test.pushPass()
+    return Optional.none
+  }
+
+  @discardableResult
+  func notToBeNil() -> Any? {
+    if actual == nil {
+      Test.pushFail("expected `actual` to not be `nil`, but it was `nil`")
+      return Optional.none
+    }
+    Test.pushPass()
+    return Optional.some(actual!)
   }
 }
 
-func expect(_ actual: Any) -> Expectation {
+func expect(_ actual: Any?) -> Expectation {
   return Expectation(actual: actual)
 }
 
