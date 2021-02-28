@@ -25,6 +25,33 @@ func main() {
     }
   }
 
+  test("return statements") {
+    let input = """
+      return 5;
+      return 10;
+      return 993322;
+      """
+
+    let lexer = Lexer(input)
+    let parser = Parser(lexer)
+    let program = parser.parseProgram()
+
+    guard noParserErrors(parser) else {
+      return
+    }
+
+    guard expect(program.statements.count).toEqual(3) else {
+      return
+    }
+
+    for statement in program.statements {
+      guard let returnStmt = expect(statement).toBe(ReturnStatement.self) else {
+        return
+      }
+      expect(returnStmt.tokenLiteral).toEqual("return")
+    }
+  }
+
   Test.report()
 }
 
@@ -32,16 +59,13 @@ func testLetStatement(_ statement: Statement?, _ name: String) {
   guard let statement = expect(statement).toBe(Statement.self) else {
     return
   }
-
   guard let letStatement = expect(statement).toBe(LetStatement.self) else {
     return
   }
-
   if expect(letStatement.name?.value).toEqual(name) {
     return
   }
-
-  expect(letStatement.name?.tokenLiteral()).toEqual(name)
+  expect(letStatement.name?.tokenLiteral).toEqual(name)
 }
 
 func noParserErrors(_ parser: Parser) -> Bool {

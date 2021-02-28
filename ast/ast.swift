@@ -1,5 +1,6 @@
 protocol Node {
-  func tokenLiteral() -> String
+  var tokenLiteral: String { get }
+  var string: String { get }
 }
 
 protocol HasToken: Node {
@@ -7,9 +8,7 @@ protocol HasToken: Node {
 }
 
 extension HasToken {
-  func tokenLiteral() -> String {
-    return self.token.literal
-  }
+  var tokenLiteral: String { self.token.literal }
 }
 
 protocol Statement: Node {}
@@ -22,12 +21,16 @@ protocol ProgramProtocol: Node {
 struct Program: ProgramProtocol {
   var statements: [Statement] = []
 
-  func tokenLiteral() -> String {
+  var tokenLiteral: String {
     if let firstStatement = statements.first {
-      return firstStatement.tokenLiteral()
+      return firstStatement.tokenLiteral
     } else {
       return ""
     }
+  }
+
+  var string: String {
+    statements.map { $0.string }.joined()
   }
 }
 
@@ -35,9 +38,32 @@ struct LetStatement: HasToken, Statement {
   var token: Token
   var name: Identifier?
   var value: Expression?
+
+  var string: String {
+    "\(tokenLiteral) \(name?.string ?? "") = \(value?.string ?? "");"
+  }
 }
 
 struct Identifier: HasToken, Expression {
   var token: Token
   let value: String
+  var string: String { value }
+}
+
+struct ReturnStatement: HasToken, Statement {
+  var token: Token
+  var returnValue: Expression?
+
+  var string: String {
+    "\(tokenLiteral) \(returnValue?.string ?? "");"
+  }
+}
+
+struct ExpressionStatement: HasToken, Statement {
+  var token: Token
+  var expression: Expression?
+
+  var string: String {
+    expression?.string ?? ""
+  }
 }

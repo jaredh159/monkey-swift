@@ -19,9 +19,23 @@ class Parser {
     switch curToken.type {
       case .LET:
         return parseLetStatement()
+      case .RETURN:
+        return parseReturnStatement()
       default:
         return nil
     }
+  }
+
+  func parseReturnStatement() -> ReturnStatement? {
+    let stmt = ReturnStatement(token: curToken)
+    nextToken()
+
+    // skip parsing expressions for now
+    while !curTokenIs(.SEMICOLON) {
+      nextToken()
+    }
+
+    return stmt
   }
 
   func parseLetStatement() -> LetStatement? {
