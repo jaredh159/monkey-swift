@@ -1,3 +1,13 @@
+enum Precedence: Int {
+  case LOWEST = 0
+  case EQUALS
+  case LESSGREATER
+  case SUM
+  case PRODUCT
+  case PREFIX
+  case CALL
+}
+
 class Parser {
   private let l: Lexer
   private var curToken: Token
@@ -22,8 +32,25 @@ class Parser {
       case .RETURN:
         return parseReturnStatement()
       default:
-        return nil
+        return parseExpressionStatement()
     }
+  }
+
+  func parseExpressionStatement() -> ExpressionStatement {
+    var stmt = ExpressionStatement(token: curToken)
+    stmt.expression = parseExpression(precedence: .LOWEST)
+    if peekTokenIs(.SEMICOLON) {
+      nextToken()
+    }
+    return stmt
+  }
+
+  func parseExpression(precedence: Precedence) -> Expression? {
+    guard let prefixFn = Parselet.prefixFns[curToken.type] else {
+      return nil
+    }
+    let leftExp = prefixFn()
+    return leftExp
   }
 
   func parseReturnStatement() -> ReturnStatement? {
@@ -40,13 +67,11 @@ class Parser {
 
   func parseLetStatement() -> LetStatement? {
     var stmt = LetStatement(token: curToken)
-
     if !expectPeek(.IDENT) {
       return nil
     }
 
     stmt.name = Identifier(token: curToken, value: curToken.literal)
-
     if !expectPeek(.ASSIGN) {
       return nil
     }
@@ -57,6 +82,18 @@ class Parser {
     }
 
     return stmt
+  }
+
+  func parseIdentifier() -> Identifier {
+    return Identifier(token: curToken, value: curToken.literal)
+  }
+
+  func parseIntegerLiteral() -> IntegerLiteral? {
+    guard let int = Int(curToken.literal) else {
+      errors.append("could not parse \(curToken.literal) as integer")
+      return nil
+    }
+    return IntegerLiteral(token: curToken, value: int)
   }
 
   func curTokenIs(_ tokenType: TokenType) -> Bool {
@@ -91,6 +128,9 @@ class Parser {
     // read first two tokens
     nextToken()
     nextToken()
+
+    Parselet.register(prefix: self.parseIdentifier, .IDENT)
+    Parselet.register(prefix: self.parseIntegerLiteral, .INT)
   }
 
   private func nextToken() {

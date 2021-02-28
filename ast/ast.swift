@@ -67,3 +67,9 @@ struct ExpressionStatement: HasToken, Statement {
     expression?.string ?? ""
   }
 }
+
+struct IntegerLiteral: HasToken, Expression {
+  var token: Token
+  var value: Int
+  var string: String { tokenLiteral }
+}

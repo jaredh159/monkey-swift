@@ -1,4 +1,4 @@
-public enum TokenType: String, CustomStringConvertible {
+enum TokenType: String, CustomStringConvertible {
   case ILLEGAL
   case EOF
   case IDENT
@@ -32,7 +32,7 @@ public enum TokenType: String, CustomStringConvertible {
   }
 }
 
-public struct Token {
+struct Token {
   let type: TokenType
   let literal: String
 

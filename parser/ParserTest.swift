@@ -8,20 +8,12 @@ func main() {
       let foobar = 838383;
       """
 
-    let lexer = Lexer(input)
-    let parser = Parser(lexer)
-    let program = parser.parseProgram()
-
-    guard noParserErrors(parser) else {
-      return
-    }
-
-    guard expect(program.statements.count).toEqual(3) else {
+    guard let statements = expectParsed(input, 3) else {
       return
     }
 
     for (idx, expectedIdentifier) in ["x", "y", "foobar"].enumerated() {
-      testLetStatement(program.statements[idx], expectedIdentifier)
+      testLetStatement(statements[idx], expectedIdentifier)
     }
   }
 
@@ -32,34 +24,72 @@ func main() {
       return 993322;
       """
 
-    let lexer = Lexer(input)
-    let parser = Parser(lexer)
-    let program = parser.parseProgram()
-
-    guard noParserErrors(parser) else {
+    guard let statements = expectParsed(input, 3) else {
       return
     }
 
-    guard expect(program.statements.count).toEqual(3) else {
-      return
-    }
-
-    for statement in program.statements {
-      guard let returnStmt = expect(statement).toBe(ReturnStatement.self) else {
+    for statement in statements {
+      guard let returnStmt = expectType(statement, ReturnStatement.self) else {
         return
       }
       expect(returnStmt.tokenLiteral).toEqual("return")
     }
   }
 
+  test("identifier expression") {
+    guard let statements = expectParsed("foobar;", 1) else {
+      return
+    }
+    guard let exprStmt = expectType(statements[0], ExpressionStatement.self) else {
+      return
+    }
+    guard let expr = expectType(exprStmt.expression!, Expression.self) else {
+      return
+    }
+    guard let ident = expectType(expr, Identifier.self) else {
+      return
+    }
+
+    expect(ident.value).toEqual("foobar")
+    expect(ident.tokenLiteral).toEqual("foobar")
+  }
+
+  test("integer expression") {
+    guard let statements = expectParsed("5;", 1) else {
+      return
+    }
+
+    guard let exprStmt = expectType(statements[0], ExpressionStatement.self) else {
+      return
+    }
+    guard let expr = expectType(exprStmt.expression!, Expression.self) else {
+      return
+    }
+    guard let int = expectType(expr, IntegerLiteral.self) else {
+      return
+    }
+
+    expect(int.value).toEqual(5)
+    expect(int.tokenLiteral).toEqual("5")
+  }
+
   Test.report()
 }
 
+func expectParsed(_ input: String, _ expectedNumStatements: Int) -> [Statement]? {
+  let parser = Parser(Lexer(input))
+  let program = parser.parseProgram()
+  guard noParserErrors(parser) else { return nil }
+  let statements = program.statements
+  guard expect(statements.count).toEqual(expectedNumStatements) else { return nil }
+  return statements
+}
+
 func testLetStatement(_ statement: Statement?, _ name: String) {
-  guard let statement = expect(statement).toBe(Statement.self) else {
+  guard let statement = expectType(statement, Statement.self) else {
     return
   }
-  guard let letStatement = expect(statement).toBe(LetStatement.self) else {
+  guard let letStatement = expectType(statement, LetStatement.self) else {
     return
   }
   if expect(letStatement.name?.value).toEqual(name) {

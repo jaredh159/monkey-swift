@@ -122,3 +122,7 @@ func test(_ name: String, _ fn: () -> Void) {
   Test.current = name
   fn()
 }
+
+func expectType<T>(_ actual: Any?, _ expectedType: T.Type) -> T? {
+  return expect(actual).toBe(expectedType)
+}
