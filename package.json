@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "format": "swift-format --configuration .swift-format.json -r -i ."
+    "repl": "swift run --package-path ../../",
+    "build": "swift build --package-path ../../"
   }
 }

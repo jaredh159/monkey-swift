@@ -1,4 +1,4 @@
-func main() {
+func testLexer() {
   Test.reset(suiteName: "LexerTest")
 
   test("next token") {

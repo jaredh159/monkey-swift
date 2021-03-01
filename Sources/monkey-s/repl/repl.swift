@@ -23,7 +23,3 @@ struct Repl {
     print(">> ".cyan, terminator: "")
   }
 }
-
-func main() {
-  Repl.welcome()
-}

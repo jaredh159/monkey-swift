@@ -1,4 +1,4 @@
-func main() {
+func testParser() {
   Test.reset(suiteName: "ParserTest")
 
   test("let statements") {

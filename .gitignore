@@ -1,3 +1,5 @@
 .DS_Store
-.bin/*
-!.bin/.gitkeep
+/.build
+/Packages
+/*.xcodeproj
+xcuserdata/
