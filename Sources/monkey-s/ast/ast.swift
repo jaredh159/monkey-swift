@@ -73,3 +73,13 @@ struct IntegerLiteral: HasToken, Expression {
   var value: Int
   var string: String { tokenLiteral }
 }
+
+struct PrefixExpression: HasToken, Expression {
+  var token: Token
+  var `operator`: String
+  var right: Expression?
+
+  var string: String {
+    "(\(self.operator)\(self.right?.string ?? ""))"
+  }
+}

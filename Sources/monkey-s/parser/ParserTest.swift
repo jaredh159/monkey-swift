@@ -58,19 +58,34 @@ func testParser() {
     guard let statements = expectParsed("5;", 1) else {
       return
     }
-
     guard let exprStmt = expectType(statements[0], ExpressionStatement.self) else {
       return
     }
     guard let expr = expectType(exprStmt.expression!, Expression.self) else {
       return
     }
-    guard let int = expectType(expr, IntegerLiteral.self) else {
-      return
-    }
+    expect(expr).toBeIntegerLiteral(5)
+  }
 
-    expect(int.value).toEqual(5)
-    expect(int.tokenLiteral).toEqual("5")
+  test("prefix expressions") {
+    let cases: [(String, String, Int)] = [
+      ("!5", "!", 5),
+      ("-15", "-", 15),
+    ]
+
+    cases.forEach {(input, op, int) in
+      guard let statements = expectParsed(input, 1) else {
+        return
+      }
+      guard let exprStmt = expectType(statements[0], ExpressionStatement.self) else {
+        return
+      }
+      guard let exp = expectType(exprStmt.expression!, PrefixExpression.self) else {
+        return
+      }
+      expect(exp.operator).toEqual(op)
+      expect(exp.right).toBeIntegerLiteral(int)
+    }
   }
 
   Test.report()

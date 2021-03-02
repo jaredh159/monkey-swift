@@ -112,6 +112,17 @@ struct Expectation {
     Test.pushPass()
     return Optional.some(actual!)
   }
+
+  @discardableResult
+  func toBeIntegerLiteral(_ int: Int) -> Bool {
+    guard let intLit = expectType(actual, IntegerLiteral.self) else {
+      return false
+    }
+    guard expect(intLit.value).toEqual(int) else {
+      return false
+    }
+    return expect(intLit.tokenLiteral).toEqual(String(int))
+  }
 }
 
 func expect(_ actual: Any?) -> Expectation {

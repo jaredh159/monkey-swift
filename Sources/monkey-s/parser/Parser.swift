@@ -47,6 +47,7 @@ class Parser {
 
   func parseExpression(precedence: Precedence) -> Expression? {
     guard let prefixFn = Parselet.prefixFns[curToken.type] else {
+      errors.append("no prefix parse function for \(curToken) found")
       return nil
     }
     let leftExp = prefixFn()
@@ -96,6 +97,13 @@ class Parser {
     return IntegerLiteral(token: curToken, value: int)
   }
 
+  func parsePrefixExpression() -> PrefixExpression {
+    var expr = PrefixExpression(token: curToken, operator: curToken.literal)
+    nextToken()
+    expr.right = parseExpression(precedence: .PREFIX)
+    return expr
+  }
+
   func curTokenIs(_ tokenType: TokenType) -> Bool {
     return curToken.type == tokenType
   }
@@ -131,6 +139,8 @@ class Parser {
 
     Parselet.register(prefix: self.parseIdentifier, .IDENT)
     Parselet.register(prefix: self.parseIntegerLiteral, .INT)
+    Parselet.register(prefix: self.parsePrefixExpression, .BANG)
+    Parselet.register(prefix: self.parsePrefixExpression, .MINUS)
   }
 
   private func nextToken() {
