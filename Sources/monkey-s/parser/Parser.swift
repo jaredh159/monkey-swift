@@ -1,13 +1,3 @@
-enum Precedence: Int {
-  case LOWEST = 0
-  case EQUALS
-  case LESSGREATER
-  case SUM
-  case PRODUCT
-  case PREFIX
-  case CALL
-}
-
 class Parser {
   private let l: Lexer
   private var curToken: Token
@@ -50,7 +40,23 @@ class Parser {
       errors.append("no prefix parse function for \(curToken) found")
       return nil
     }
-    let leftExp = prefixFn()
+
+    guard var leftExp = prefixFn() else {
+      return nil
+    }
+
+    while !peekTokenIs(.SEMICOLON) && precedence < peekPrecedence() {
+      if let infix = Parselet.infixFns[peekToken.type] {
+        nextToken()
+        guard let nextLeft = infix(leftExp) else {
+          return nil
+        }
+        leftExp = nextLeft
+      } else {
+        return leftExp
+      }
+    }
+
     return leftExp
   }
 
@@ -104,6 +110,14 @@ class Parser {
     return expr
   }
 
+  func parseInfixExpression(_ left: Expression) -> InfixExpression {
+    var infix = InfixExpression(token: curToken, left: left, operator: curToken.literal)
+    let precedence = curPrecedence()
+    nextToken()
+    infix.right = parseExpression(precedence: precedence)
+    return infix
+  }
+
   func curTokenIs(_ tokenType: TokenType) -> Bool {
     return curToken.type == tokenType
   }
@@ -141,10 +155,26 @@ class Parser {
     Parselet.register(prefix: self.parseIntegerLiteral, .INT)
     Parselet.register(prefix: self.parsePrefixExpression, .BANG)
     Parselet.register(prefix: self.parsePrefixExpression, .MINUS)
+    Parselet.register(infix: self.parseInfixExpression, .PLUS)
+    Parselet.register(infix: self.parseInfixExpression, .MINUS)
+    Parselet.register(infix: self.parseInfixExpression, .SLASH)
+    Parselet.register(infix: self.parseInfixExpression, .ASTERISK)
+    Parselet.register(infix: self.parseInfixExpression, .EQ)
+    Parselet.register(infix: self.parseInfixExpression, .NOT_EQ)
+    Parselet.register(infix: self.parseInfixExpression, .LT)
+    Parselet.register(infix: self.parseInfixExpression, .GT)
   }
 
   private func nextToken() {
     curToken = peekToken
     peekToken = l.nextToken()
+  }
+
+  private func peekPrecedence() -> Precedence {
+    return Precedence(ofToken: peekToken)
+  }
+
+  private func curPrecedence() -> Precedence {
+    return Precedence(ofToken: curToken)
   }
 }

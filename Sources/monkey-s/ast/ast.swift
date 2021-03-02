@@ -80,6 +80,17 @@ struct PrefixExpression: HasToken, Expression {
   var right: Expression?
 
   var string: String {
-    "(\(self.operator)\(self.right?.string ?? ""))"
+    "(\(self.operator)\(right?.string ?? ""))"
+  }
+}
+
+struct InfixExpression: HasToken, Expression {
+  var token: Token
+  var left: Expression
+  var `operator`: String
+  var right: Expression?
+
+  var string: String {
+    "(\(left.string) \(self.operator) \(right?.string ?? ""))"
   }
 }

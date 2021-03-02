@@ -8,7 +8,7 @@ func testParser() {
       let foobar = 838383;
       """
 
-    guard let statements = expectParsed(input, 3) else {
+    guard let statements = expectStatements(input, 3) else {
       return
     }
 
@@ -24,7 +24,7 @@ func testParser() {
       return 993322;
       """
 
-    guard let statements = expectParsed(input, 3) else {
+    guard let statements = expectStatements(input, 3) else {
       return
     }
 
@@ -37,10 +37,7 @@ func testParser() {
   }
 
   test("identifier expression") {
-    guard let statements = expectParsed("foobar;", 1) else {
-      return
-    }
-    guard let exprStmt = expectType(statements[0], ExpressionStatement.self) else {
+    guard let exprStmt = expectFirstExpr("foobar;", 1) else {
       return
     }
     guard let expr = expectType(exprStmt.expression!, Expression.self) else {
@@ -55,10 +52,7 @@ func testParser() {
   }
 
   test("integer expression") {
-    guard let statements = expectParsed("5;", 1) else {
-      return
-    }
-    guard let exprStmt = expectType(statements[0], ExpressionStatement.self) else {
+    guard let exprStmt = expectFirstExpr("5;", 1) else {
       return
     }
     guard let expr = expectType(exprStmt.expression!, Expression.self) else {
@@ -68,16 +62,13 @@ func testParser() {
   }
 
   test("prefix expressions") {
-    let cases: [(String, String, Int)] = [
+    let cases = [
       ("!5", "!", 5),
       ("-15", "-", 15),
     ]
 
-    cases.forEach {(input, op, int) in
-      guard let statements = expectParsed(input, 1) else {
-        return
-      }
-      guard let exprStmt = expectType(statements[0], ExpressionStatement.self) else {
+    cases.forEach { (input, op, int) in
+      guard let exprStmt = expectFirstExpr(input, 1) else {
         return
       }
       guard let exp = expectType(exprStmt.expression!, PrefixExpression.self) else {
@@ -88,10 +79,46 @@ func testParser() {
     }
   }
 
+  test("infix expressions") {
+    let cases = [
+      ("5 + 5;", 5, "+", 5),
+      ("5 - 5;", 5, "-", 5),
+      ("5 * 5;", 5, "*", 5),
+      ("5 / 5;", 5, "/", 5),
+      ("5 > 5;", 5, ">", 5),
+      ("5 < 5;", 5, "<", 5),
+      ("5 == 5;", 5, "==", 5),
+      ("5 != 5;", 5, "!=", 5),
+    ]
+
+    cases.forEach { (input, left, op, right) in
+      guard let expr = expectFirstExpr(input, 1) else {
+        return
+      }
+      guard let infix = expectType(expr.expression!, InfixExpression.self) else {
+        return
+      }
+      expect(infix.left).toBeIntegerLiteral(left)
+      expect(infix.operator).toEqual(op)
+      expect(infix.right).toBeIntegerLiteral(left)
+    }
+  }
+
+  // @TODO make "precedence parsing" test from btm of p. 67 next
   Test.report()
 }
 
-func expectParsed(_ input: String, _ expectedNumStatements: Int) -> [Statement]? {
+func expectFirstExpr(_ input: String, _ numStatements: Int) -> ExpressionStatement? {
+  guard let statements = expectStatements(input, numStatements) else {
+    return nil
+  }
+  guard let exprStmt = expectType(statements[0], ExpressionStatement.self) else {
+    return nil
+  }
+  return exprStmt
+}
+
+func expectStatements(_ input: String, _ expectedNumStatements: Int) -> [Statement]? {
   let parser = Parser(Lexer(input))
   let program = parser.parseProgram()
   guard noParserErrors(parser) else { return nil }
