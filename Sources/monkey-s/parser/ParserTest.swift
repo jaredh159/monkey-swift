@@ -40,25 +40,14 @@ func testParser() {
     guard let exprStmt = expectFirstExpr("foobar;", 1) else {
       return
     }
-    guard let expr = expectType(exprStmt.expression!, Expression.self) else {
-      return
-    }
-    guard let ident = expectType(expr, Identifier.self) else {
-      return
-    }
-
-    expect(ident.value).toEqual("foobar")
-    expect(ident.tokenLiteral).toEqual("foobar")
+    expect(exprStmt.expression).toBeIdentifier("foobar")
   }
 
   test("integer expression") {
     guard let exprStmt = expectFirstExpr("5;", 1) else {
       return
     }
-    guard let expr = expectType(exprStmt.expression!, Expression.self) else {
-      return
-    }
-    expect(expr).toBeIntegerLiteral(5)
+    expect(exprStmt.expression).toBeIntegerLiteral(5)
   }
 
   test("prefix expressions") {
@@ -95,16 +84,71 @@ func testParser() {
       guard let expr = expectFirstExpr(input, 1) else {
         return
       }
-      guard let infix = expectType(expr.expression!, InfixExpression.self) else {
-        return
+      expect(expr.expression).toBeInfixExpression(left: left, op: op, right: right)
+    }
+
+    test("operator precedence parsing") {
+      let cases = [
+        (
+          "-a * b",
+          "((-a) * b)"
+        ),
+        (
+          "!-a",
+          "(!(-a))"
+        ),
+        (
+          "a + b + c",
+          "((a + b) + c)"
+        ),
+        (
+          "a + b - c",
+          "((a + b) - c)"
+        ),
+        (
+          "a * b * c",
+          "((a * b) * c)"
+        ),
+        (
+          "a * b / c",
+          "((a * b) / c)"
+        ),
+        (
+          "a + b / c",
+          "(a + (b / c))"
+        ),
+        (
+          "a + b * c + d / e - f",
+          "(((a + (b * c)) + (d / e)) - f)"
+        ),
+        (
+          "3 + 4; -5 * 5",
+          "(3 + 4)((-5) * 5)"
+        ),
+        (
+          "5 > 4 == 3 < 4",
+          "((5 > 4) == (3 < 4))"
+        ),
+        (
+          "5 < 4 != 3 > 4",
+          "((5 < 4) != (3 > 4))"
+        ),
+        (
+          "3 + 4 * 5 == 3 * 1 + 4 * 5",
+          "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))"
+        ),
+      ]
+
+      cases.forEach { (input, expectedString) in
+        let parser = Parser(Lexer(input))
+        guard noParserErrors(parser) else {
+          return
+        }
+        expect(parser.parseProgram().string).toEqual(expectedString)
       }
-      expect(infix.left).toBeIntegerLiteral(left)
-      expect(infix.operator).toEqual(op)
-      expect(infix.right).toBeIntegerLiteral(left)
     }
   }
 
-  // @TODO make "precedence parsing" test from btm of p. 67 next
   Test.report()
 }
 

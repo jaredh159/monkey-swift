@@ -26,14 +26,19 @@ struct Test {
   }
 
   static func report() {
+    print("\nTest suite:".grey, "\(suite)".magenta)
     passMessages.forEach { _ in print("•".green, terminator: "") }
     if numFails > 0 {
-      print("")
+      failMessages.forEach { print($0.red) }
     }
-    failMessages.forEach { print($0.red) }
     print("")
 
-    print("\(numPasses) passed ".green, "\(numFails) failed\n".red)
+    print("\(numPasses) passed ".green, terminator: "")
+    if numFails > 0 {
+      print("\(numFails) failed".red)
+    } else {
+      print("\n")
+    }
   }
 }
 
@@ -122,6 +127,55 @@ struct Expectation {
       return false
     }
     return expect(intLit.tokenLiteral).toEqual(String(int))
+  }
+
+  @discardableResult
+  func toBeIdentifier(_ value: String) -> Bool {
+    if actual == nil {
+      Test.pushFail("expected type: Expression, got `nil`")
+      return false
+    }
+
+    guard let ident = expectType(actual, Identifier.self) else {
+      return false
+    }
+
+    return expect(ident.value).toEqual(value) && expect(ident.tokenLiteral).toEqual(value)
+  }
+
+  @discardableResult
+  func toBeLiteralExpression(_ expected: Any) -> Bool {
+    guard let expr = actual else {
+      Test.pushFail("expected type: Expression, got `nil`")
+      return false
+    }
+
+    switch expected {
+      case let int as Int:
+        return toBeIntegerLiteral(int)
+      case let string as String:
+        return toBeIdentifier(string)
+      default:
+        Test.pushFail("type of expression not handled. got=\(type(of: expr))")
+        return false
+    }
+  }
+
+  @discardableResult
+  func toBeInfixExpression(left: Any, op: String, right: Any) -> Bool {
+    guard let infix = toBe(InfixExpression.self) else {
+      return false
+    }
+
+    guard expect(infix.left).toBeLiteralExpression(left) else {
+      return false
+    }
+
+    guard expect(infix.operator).toEqual(op) else {
+      return false
+    }
+
+    return expect(infix.right).toBeLiteralExpression(right)
   }
 }
 
