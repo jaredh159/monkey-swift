@@ -12,12 +12,12 @@ this time in **Swift**
 $ swift run
 
 # run ALL unit tests
-$ swift run monkey-swift test
+$ swift run monkey test
 
 # run individual test suites
-$ swift run monkey-swift test ast
-$ swift run monkey-swift test lexer
-$ swift run monkey-swift test parser
+$ swift run monkey test ast
+$ swift run monkey test lexer
+$ swift run monkey test parser
 
 # build: if you're using SourceKit-LSP outside of Xcode
 # this command helps SourceKit-LSP know about all source files
