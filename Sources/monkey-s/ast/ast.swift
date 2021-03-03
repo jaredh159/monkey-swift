@@ -94,3 +94,9 @@ struct InfixExpression: HasToken, Expression {
     "(\(left.string) \(self.operator) \(right?.string ?? ""))"
   }
 }
+
+struct BooleanLiteral: HasToken, Expression {
+  var token: Token
+  var value: Bool
+  var string: String { tokenLiteral }
+}

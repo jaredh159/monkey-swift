@@ -103,6 +103,10 @@ class Parser {
     return IntegerLiteral(token: curToken, value: int)
   }
 
+  func parseBooleanLiteral() -> BooleanLiteral {
+    return BooleanLiteral(token: curToken, value: curToken.type == .TRUE)
+  }
+
   func parsePrefixExpression() -> PrefixExpression {
     var expr = PrefixExpression(token: curToken, operator: curToken.literal)
     nextToken()
@@ -155,6 +159,8 @@ class Parser {
     Parselet.register(prefix: self.parseIntegerLiteral, .INT)
     Parselet.register(prefix: self.parsePrefixExpression, .BANG)
     Parselet.register(prefix: self.parsePrefixExpression, .MINUS)
+    Parselet.register(prefix: self.parseBooleanLiteral, .TRUE)
+    Parselet.register(prefix: self.parseBooleanLiteral, .FALSE)
     Parselet.register(infix: self.parseInfixExpression, .PLUS)
     Parselet.register(infix: self.parseInfixExpression, .MINUS)
     Parselet.register(infix: self.parseInfixExpression, .SLASH)

@@ -29,6 +29,7 @@ struct Test {
     print("\nTest suite:".grey, "\(suite)".magenta)
     passMessages.forEach { _ in print("•".green, terminator: "") }
     if numFails > 0 {
+      print("")
       failMessages.forEach { print($0.red) }
     }
     print("")
@@ -67,6 +68,20 @@ struct Expectation {
     }
     if actual != expected {
       Test.pushFail("expected (String) \"\(expected)\", got \"\(actual)\"")
+      return false
+    }
+    Test.pushPass()
+    return true
+  }
+
+  @discardableResult
+  func toEqual(_ expected: Bool) -> Bool {
+    guard let actual = actual as? Bool else {
+      Test.pushFail("`actual` val was not Bool, got type=\(type(of: self.actual))")
+      return false
+    }
+    if actual != expected {
+      Test.pushFail("expected (Bool) \"\(expected)\", got \"\(actual)\"")
       return false
     }
     Test.pushPass()
@@ -119,6 +134,17 @@ struct Expectation {
   }
 
   @discardableResult
+  func toBeBooleanLiteral(_ bool: Bool) -> Bool {
+    guard let boolLit = expectType(actual, BooleanLiteral.self) else {
+      return false
+    }
+    guard expect(boolLit.value).toEqual(bool) else {
+      return false
+    }
+    return expect(boolLit.tokenLiteral).toEqual(bool ? "true" : "false")
+  }
+
+  @discardableResult
   func toBeIntegerLiteral(_ int: Int) -> Bool {
     guard let intLit = expectType(actual, IntegerLiteral.self) else {
       return false
@@ -155,6 +181,8 @@ struct Expectation {
         return toBeIntegerLiteral(int)
       case let string as String:
         return toBeIdentifier(string)
+      case let bool as Bool:
+        return toBeBooleanLiteral(bool)
       default:
         Test.pushFail("type of expression not handled. got=\(type(of: expr))")
         return false

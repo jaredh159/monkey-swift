@@ -43,6 +43,13 @@ func testParser() {
     expect(exprStmt.expression).toBeIdentifier("foobar")
   }
 
+  test("boolean expression") {
+    guard let exprStmt = expectFirstExpr("true;", 1) else {
+      return
+    }
+    expect(exprStmt.expression).toBeBooleanLiteral(true)
+  }
+
   test("integer expression") {
     guard let exprStmt = expectFirstExpr("5;", 1) else {
       return
@@ -51,12 +58,14 @@ func testParser() {
   }
 
   test("prefix expressions") {
-    let cases = [
+    let cases: [(String, String, Any)] = [
       ("!5", "!", 5),
       ("-15", "-", 15),
+      ("!true", "!", true),
+      ("!false", "!", false),
     ]
 
-    cases.forEach { (input, op, int) in
+    cases.forEach { (input, op, expectedLiteral) in
       guard let exprStmt = expectFirstExpr(input, 1) else {
         return
       }
@@ -64,12 +73,12 @@ func testParser() {
         return
       }
       expect(exp.operator).toEqual(op)
-      expect(exp.right).toBeIntegerLiteral(int)
+      expect(exp.right).toBeLiteralExpression(expectedLiteral)
     }
   }
 
   test("infix expressions") {
-    let cases = [
+    let cases: [(String, Any, String, Any)] = [
       ("5 + 5;", 5, "+", 5),
       ("5 - 5;", 5, "-", 5),
       ("5 * 5;", 5, "*", 5),
@@ -78,6 +87,9 @@ func testParser() {
       ("5 < 5;", 5, "<", 5),
       ("5 == 5;", 5, "==", 5),
       ("5 != 5;", 5, "!=", 5),
+      ("true == true", true, "==", true),
+      ("true != false", true, "!=", false),
+      ("false == false", false, "==", false),
     ]
 
     cases.forEach { (input, left, op, right) in
@@ -136,6 +148,22 @@ func testParser() {
         (
           "3 + 4 * 5 == 3 * 1 + 4 * 5",
           "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))"
+        ),
+        (
+          "true",
+          "true"
+        ),
+        (
+          "false",
+          "false"
+        ),
+        (
+          "3 > 5 == false",
+          "((3 > 5) == false)"
+        ),
+        (
+          "3 < 5 == true",
+          "((3 < 5) == true)"
         ),
       ]
 
