@@ -98,85 +98,105 @@ func testParser() {
       }
       expect(expr.expression).toBeInfixExpression(left: left, op: op, right: right)
     }
-
-    test("operator precedence parsing") {
-      let cases = [
-        (
-          "-a * b",
-          "((-a) * b)"
-        ),
-        (
-          "!-a",
-          "(!(-a))"
-        ),
-        (
-          "a + b + c",
-          "((a + b) + c)"
-        ),
-        (
-          "a + b - c",
-          "((a + b) - c)"
-        ),
-        (
-          "a * b * c",
-          "((a * b) * c)"
-        ),
-        (
-          "a * b / c",
-          "((a * b) / c)"
-        ),
-        (
-          "a + b / c",
-          "(a + (b / c))"
-        ),
-        (
-          "a + b * c + d / e - f",
-          "(((a + (b * c)) + (d / e)) - f)"
-        ),
-        (
-          "3 + 4; -5 * 5",
-          "(3 + 4)((-5) * 5)"
-        ),
-        (
-          "5 > 4 == 3 < 4",
-          "((5 > 4) == (3 < 4))"
-        ),
-        (
-          "5 < 4 != 3 > 4",
-          "((5 < 4) != (3 > 4))"
-        ),
-        (
-          "3 + 4 * 5 == 3 * 1 + 4 * 5",
-          "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))"
-        ),
-        (
-          "true",
-          "true"
-        ),
-        (
-          "false",
-          "false"
-        ),
-        (
-          "3 > 5 == false",
-          "((3 > 5) == false)"
-        ),
-        (
-          "3 < 5 == true",
-          "((3 < 5) == true)"
-        ),
-      ]
-
-      cases.forEach { (input, expectedString) in
-        let parser = Parser(Lexer(input))
-        guard noParserErrors(parser) else {
-          return
-        }
-        expect(parser.parseProgram().string).toEqual(expectedString)
-      }
-    }
   }
 
+  test("operator precedence parsing") {
+    let cases = [
+      (
+        "-a * b",
+        "((-a) * b)"
+      ),
+      (
+        "!-a",
+        "(!(-a))"
+      ),
+      (
+        "a + b + c",
+        "((a + b) + c)"
+      ),
+      (
+        "a + b - c",
+        "((a + b) - c)"
+      ),
+      (
+        "a * b * c",
+        "((a * b) * c)"
+      ),
+      (
+        "a * b / c",
+        "((a * b) / c)"
+      ),
+      (
+        "a + b / c",
+        "(a + (b / c))"
+      ),
+      (
+        "a + b * c + d / e - f",
+        "(((a + (b * c)) + (d / e)) - f)"
+      ),
+      (
+        "3 + 4; -5 * 5",
+        "(3 + 4)((-5) * 5)"
+      ),
+      (
+        "5 > 4 == 3 < 4",
+        "((5 > 4) == (3 < 4))"
+      ),
+      (
+        "5 < 4 != 3 > 4",
+        "((5 < 4) != (3 > 4))"
+      ),
+      (
+        "3 + 4 * 5 == 3 * 1 + 4 * 5",
+        "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))"
+      ),
+      (
+        "true",
+        "true"
+      ),
+      (
+        "false",
+        "false"
+      ),
+      (
+        "3 > 5 == false",
+        "((3 > 5) == false)"
+      ),
+      (
+        "3 < 5 == true",
+        "((3 < 5) == true)"
+      ),
+      (
+        "1 + (2 + 3) + 4",
+        "((1 + (2 + 3)) + 4)"
+      ),
+      (
+        "(5 + 5) * 2",
+        "((5 + 5) * 2)"
+      ),
+      (
+        "2 / (5 + 5)",
+        "(2 / (5 + 5))"
+      ),
+      (
+        "-(5 + 5)",
+        "(-(5 + 5))"
+      ),
+      (
+        "!(true == true)",
+        "(!(true == true))"
+      ),
+    ]
+
+    cases.forEach { (input, expectedString) in
+      let parser = Parser(Lexer(input))
+      let program = parser.parseProgram()
+      guard noParserErrors(parser) else {
+        return
+      }
+      expect(program.string).toEqual(expectedString)
+    }
+  }
   Test.report()
 }
 

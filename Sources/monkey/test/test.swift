@@ -211,6 +211,10 @@ func expect(_ actual: Any?) -> Expectation {
   return Expectation(actual: actual)
 }
 
+func xtest(_ name: String, _ fn: () -> Void) {
+  print("skipping test \(name)".gray)
+}
+
 func test(_ name: String, _ fn: () -> Void) {
   Test.current = name
   fn()

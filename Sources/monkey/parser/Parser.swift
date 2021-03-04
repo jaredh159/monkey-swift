@@ -122,6 +122,15 @@ class Parser {
     return infix
   }
 
+  func parseGroupedExpression() -> Expression? {
+    nextToken()
+    let exp = parseExpression(precedence: .LOWEST)
+    guard expectPeek(.RPAREN) else {
+      return nil
+    }
+    return exp
+  }
+
   func curTokenIs(_ tokenType: TokenType) -> Bool {
     return curToken.type == tokenType
   }
@@ -161,6 +170,7 @@ class Parser {
     Parselet.register(prefix: self.parsePrefixExpression, .MINUS)
     Parselet.register(prefix: self.parseBooleanLiteral, .TRUE)
     Parselet.register(prefix: self.parseBooleanLiteral, .FALSE)
+    Parselet.register(prefix: self.parseGroupedExpression, .LPAREN)
     Parselet.register(infix: self.parseInfixExpression, .PLUS)
     Parselet.register(infix: self.parseInfixExpression, .MINUS)
     Parselet.register(infix: self.parseInfixExpression, .SLASH)
