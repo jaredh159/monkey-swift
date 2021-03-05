@@ -1,6 +1,10 @@
-protocol Node {
+protocol Node: CustomStringConvertible {
   var tokenLiteral: String { get }
   var string: String { get }
+}
+
+extension Node {
+  var description: String { string }
 }
 
 protocol HasToken: Node {
@@ -91,7 +95,7 @@ struct InfixExpression: HasToken, Expression {
   var right: Expression?
 
   var string: String {
-    "(\(left.string) \(self.operator) \(right?.string ?? ""))"
+    "(\(left) \(self.operator) \(right?.string ?? ""))"
   }
 }
 
@@ -99,4 +103,24 @@ struct BooleanLiteral: HasToken, Expression {
   var token: Token
   var value: Bool
   var string: String { tokenLiteral }
+}
+
+struct IfExpression: HasToken, Expression {
+  var token: Token
+  var condition: Expression?
+  var consequence: BlockStatement?
+  var alternative: BlockStatement?
+  var string: String {
+    return
+      "if\(condition?.string ?? "") \(consequence?.string ?? "")\(alternative == nil ? "" : "else \(alternative!)")"
+  }
+}
+
+struct BlockStatement: HasToken, Statement {
+  var token: Token
+  var statements: [Statement] = []
+
+  var string: String {
+    statements.map { $0.string }.joined()
+  }
 }

@@ -197,6 +197,60 @@ func testParser() {
       expect(program.string).toEqual(expectedString)
     }
   }
+
+  test("if expression") {
+    let cases = [
+      ("if (x < y) { x }", ""),
+      ("if (x < y) { x } else { y }", "y"),
+    ]
+
+    cases.forEach { (input, expectedAlt) in
+      guard let stmt = expectFirstExpr(input, 1) else {
+        return
+      }
+      guard let ifExp = expect(stmt.expression).toBe(IfExpression.self) else {
+        return
+      }
+      guard expect(ifExp.condition).toBeInfixExpression(left: "x", op: "<", right: "y") else {
+        return
+      }
+      guard let cons = expect(ifExp.consequence).toBe(BlockStatement.self) else {
+        return
+      }
+      guard expect(cons.statements.count).toEqual(1) else {
+        return
+      }
+      guard let firstCons = cons.statements.first else {
+        return
+      }
+      guard let consExprStmt = expect(firstCons).toBe(ExpressionStatement.self) else {
+        return
+      }
+      guard expect(consExprStmt.expression).toBeIdentifier("x") else {
+        return
+      }
+      if expectedAlt == "" {
+        expect(ifExp.alternative).toBeNil()
+        return
+      }
+      guard let alt = expect(ifExp.alternative).toBe(BlockStatement.self) else {
+        return
+      }
+      guard expect(alt.statements.count).toEqual(1) else {
+        return
+      }
+      guard let firstAlt = alt.statements.first else {
+        return
+      }
+      guard let altExprStmt = expect(firstAlt).toBe(ExpressionStatement.self) else {
+        return
+      }
+      guard expect(altExprStmt.expression).toBeIdentifier(expectedAlt) else {
+        return
+      }
+    }
+  }
+
   Test.report()
 }
 

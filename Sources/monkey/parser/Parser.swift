@@ -131,6 +131,42 @@ class Parser {
     return exp
   }
 
+  func parseIfExpression() -> Expression? {
+    var expression = IfExpression(token: curToken)
+    guard expectPeek(.LPAREN) else {
+      return nil
+    }
+    nextToken()
+    expression.condition = parseExpression(precedence: .LOWEST)
+    guard expectPeek(.RPAREN) else {
+      return nil
+    }
+    guard expectPeek(.LBRACE) else {
+      return nil
+    }
+    expression.consequence = parseBlockStatement()
+    if peekTokenIs(.ELSE) {
+      nextToken()
+      guard expectPeek(.LBRACE) else {
+        return nil
+      }
+      expression.alternative = parseBlockStatement()
+    }
+    return expression
+  }
+
+  func parseBlockStatement() -> BlockStatement {
+    var block = BlockStatement(token: curToken)
+    nextToken()
+    while !curTokenIs(.RBRACE) && !curTokenIs(.EOF) {
+      if let stmt = parseStatement() {
+        block.statements.append(stmt)
+      }
+      nextToken()
+    }
+    return block
+  }
+
   func curTokenIs(_ tokenType: TokenType) -> Bool {
     return curToken.type == tokenType
   }
@@ -171,6 +207,7 @@ class Parser {
     Parselet.register(prefix: self.parseBooleanLiteral, .TRUE)
     Parselet.register(prefix: self.parseBooleanLiteral, .FALSE)
     Parselet.register(prefix: self.parseGroupedExpression, .LPAREN)
+    Parselet.register(prefix: self.parseIfExpression, .IF)
     Parselet.register(infix: self.parseInfixExpression, .PLUS)
     Parselet.register(infix: self.parseInfixExpression, .MINUS)
     Parselet.register(infix: self.parseInfixExpression, .SLASH)
