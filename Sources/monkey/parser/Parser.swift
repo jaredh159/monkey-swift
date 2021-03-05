@@ -197,6 +197,32 @@ class Parser {
     return identifiers
   }
 
+  func parseCallExpression(function: Expression) -> CallExpression {
+    let initialToken = curToken
+    let arguments = parseCallArguments()
+    return CallExpression(token: initialToken, function: function, arguments: arguments)
+  }
+
+  func parseCallArguments() -> [Expression] {
+    var args: [Expression] = []
+    if peekTokenIs(.RPAREN) {
+      return args
+    }
+    nextToken()
+    if let expr = parseExpression(precedence: .LOWEST) {
+      args.append(expr)
+    }
+    while peekTokenIs(.COMMA) {
+      nextToken()
+      nextToken()
+      if let expr = parseExpression(precedence: .LOWEST) {
+        args.append(expr)
+      }
+    }
+    _ = expectPeek(.RPAREN)
+    return args
+  }
+
   func curTokenIs(_ tokenType: TokenType) -> Bool {
     return curToken.type == tokenType
   }
@@ -247,6 +273,7 @@ class Parser {
     Parselet.register(infix: self.parseInfixExpression, .NOT_EQ)
     Parselet.register(infix: self.parseInfixExpression, .LT)
     Parselet.register(infix: self.parseInfixExpression, .GT)
+    Parselet.register(infix: self.parseCallExpression, .LPAREN)
   }
 
   private func nextToken() {

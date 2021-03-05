@@ -186,6 +186,18 @@ func testParser() {
         "!(true == true)",
         "(!(true == true))"
       ),
+      (
+        "a + add(b * c) + d",
+        "((a + add((b * c))) + d)"
+      ),
+      (
+        "add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
+        "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))"
+      ),
+      (
+        "add(a + b + c * d / f + g)",
+        "add((((a + b) + ((c * d) / f)) + g))"
+      ),
     ]
 
     cases.forEach { (input, expectedString) in
@@ -298,6 +310,26 @@ func testParser() {
       }
     }
   }
+
+  test("call expression parsing") {
+    let input = "add(1, 2 * 3, 4 + 5);"
+    guard let exprStmt = expectFirstExpr(input, 1) else {
+      return
+    }
+    guard let callExp = expect(exprStmt.expression).toBe(CallExpression.self) else {
+      return
+    }
+    guard expect(callExp.function).toBeIdentifier("add") else {
+      return
+    }
+    guard expect(callExp.arguments.count).toEqual(3) else {
+      return
+    }
+    expect(callExp.arguments[0]).toBeLiteralExpression(1)
+    expect(callExp.arguments[1]).toBeInfixExpression(left: 2, op: "*", right: 3)
+    expect(callExp.arguments[2]).toBeInfixExpression(left: 4, op: "+", right: 5)
+  }
+
   Test.report()
 }
 

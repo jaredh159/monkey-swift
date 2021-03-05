@@ -25,6 +25,8 @@ enum Precedence: Int, Comparable {
         self = .PRODUCT
       case .ASTERISK:
         self = .PRODUCT
+      case .LPAREN:
+        self = .CALL
       default:
         self = .LOWEST
     }

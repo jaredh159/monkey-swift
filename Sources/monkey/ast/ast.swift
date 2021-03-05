@@ -139,3 +139,14 @@ struct FunctionLiteral: HasToken, Expression {
     return "\(tokenLiteral) (\(params)) \(body?.string ?? "")"
   }
 }
+
+struct CallExpression: HasToken, Expression {
+  var token: Token  // the `(` token
+  var function: Expression  // Identifier || FunctionLiteral
+  var arguments: [Expression] = []
+
+  var string: String {
+    let args = arguments.map { $0.string }.joined(separator: ", ")
+    return "\(function)(\(args))"
+  }
+}
