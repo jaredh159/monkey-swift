@@ -27,7 +27,9 @@ struct Test {
 
   static func report() {
     print("\nTest suite:".grey, "\(suite)".magenta)
-    passMessages.forEach { _ in print("•".green, terminator: "") }
+    passMessages.enumerated().forEach { (idx, _) in
+      print("•".green, terminator: (idx + 1) % 100 == 0 ? "\n" : "")
+    }
     if numFails > 0 {
       print("")
       failMessages.forEach { print($0.red) }

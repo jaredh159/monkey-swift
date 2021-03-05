@@ -111,8 +111,12 @@ struct IfExpression: HasToken, Expression {
   var consequence: BlockStatement?
   var alternative: BlockStatement?
   var string: String {
+    var alt = ""
+    if let alternative = alternative {
+      alt = "else \(alternative)"
+    }
     return
-      "if\(condition?.string ?? "") \(consequence?.string ?? "")\(alternative == nil ? "" : "else \(alternative!)")"
+      "if\(condition?.string ?? "") \(consequence?.string ?? "")\(alt)"
   }
 }
 
@@ -122,5 +126,16 @@ struct BlockStatement: HasToken, Statement {
 
   var string: String {
     statements.map { $0.string }.joined()
+  }
+}
+
+struct FunctionLiteral: HasToken, Expression {
+  var token: Token
+  var parameters: [Identifier] = []
+  var body: BlockStatement?
+
+  var string: String {
+    let params = parameters.map { $0.string }.joined(separator: ", ")
+    return "\(tokenLiteral) (\(params)) \(body?.string ?? "")"
   }
 }

@@ -251,6 +251,53 @@ func testParser() {
     }
   }
 
+  test("function literals") {
+    let input = "fn(x, y) { x + y; }"
+    guard let exprStmt = expectFirstExpr(input, 1) else {
+      return
+    }
+    guard let fnLit = expect(exprStmt.expression).toBe(FunctionLiteral.self) else {
+      return
+    }
+    guard expect(fnLit.parameters.count).toEqual(2) else {
+      return
+    }
+    expect(fnLit.parameters[0]).toBeLiteralExpression("x")
+    expect(fnLit.parameters[1]).toBeLiteralExpression("y")
+    guard let body = fnLit.body else {
+      Test.pushFail("unexpected nil for function literal body")
+      return
+    }
+    guard expect(body.statements.count).toEqual(1) else {
+      return
+    }
+    guard let bodyStmt = expect(body.statements[0]).toBe(ExpressionStatement.self) else {
+      return
+    }
+    expect(bodyStmt.expression).toBeInfixExpression(left: "x", op: "+", right: "y")
+  }
+
+  test("function parameter parsing") {
+    let cases = [
+      ("fn() {}", []),
+      ("fn(x) {}", ["x"]),
+      ("fn(x, y, z) {}", ["x", "y", "z"]),
+    ]
+    cases.forEach { (input, expectedParams) in
+      guard let exprStmt = expectFirstExpr(input, 1) else {
+        return
+      }
+      guard let fnLit = expect(exprStmt.expression).toBe(FunctionLiteral.self) else {
+        return
+      }
+      guard expect(fnLit.parameters.count).toEqual(expectedParams.count) else {
+        return
+      }
+      for (param, expected) in zip(fnLit.parameters, expectedParams) {
+        expect(param).toBeLiteralExpression(expected)
+      }
+    }
+  }
   Test.report()
 }
 

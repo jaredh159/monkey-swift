@@ -1,5 +1,4 @@
 import XCTest
-
 import monkey
 
 final class MonkeyTests: XCTestCase {

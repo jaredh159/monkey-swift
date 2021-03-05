@@ -167,6 +167,36 @@ class Parser {
     return block
   }
 
+  func parseFunctionLiteral() -> FunctionLiteral? {
+    var fnLit = FunctionLiteral(token: curToken)
+    guard expectPeek(.LPAREN) else {
+      return nil
+    }
+    fnLit.parameters = parseFunctionParameters()
+    guard expectPeek(.LBRACE) else {
+      return nil
+    }
+    fnLit.body = parseBlockStatement()
+    return fnLit
+  }
+
+  func parseFunctionParameters() -> [Identifier] {
+    var identifiers: [Identifier] = []
+    if peekTokenIs(.RPAREN) {
+      nextToken()
+      return identifiers
+    }
+    nextToken()
+    identifiers.append(Identifier(token: curToken, value: curToken.literal))
+    while peekTokenIs(.COMMA) {
+      nextToken()
+      nextToken()
+      identifiers.append(Identifier(token: curToken, value: curToken.literal))
+    }
+    _ = expectPeek(.RPAREN)
+    return identifiers
+  }
+
   func curTokenIs(_ tokenType: TokenType) -> Bool {
     return curToken.type == tokenType
   }
@@ -208,6 +238,7 @@ class Parser {
     Parselet.register(prefix: self.parseBooleanLiteral, .FALSE)
     Parselet.register(prefix: self.parseGroupedExpression, .LPAREN)
     Parselet.register(prefix: self.parseIfExpression, .IF)
+    Parselet.register(prefix: self.parseFunctionLiteral, .FUNCTION)
     Parselet.register(infix: self.parseInfixExpression, .PLUS)
     Parselet.register(infix: self.parseInfixExpression, .MINUS)
     Parselet.register(infix: self.parseInfixExpression, .SLASH)
