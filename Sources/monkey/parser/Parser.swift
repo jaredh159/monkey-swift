@@ -61,11 +61,12 @@ class Parser {
   }
 
   func parseReturnStatement() -> ReturnStatement? {
-    let stmt = ReturnStatement(token: curToken)
+    var stmt = ReturnStatement(token: curToken)
     nextToken()
 
-    // skip parsing expressions for now
-    while !curTokenIs(.SEMICOLON) {
+    stmt.returnValue = parseExpression(precedence: .LOWEST)
+
+    if peekTokenIs(.SEMICOLON) {
       nextToken()
     }
 
@@ -83,8 +84,10 @@ class Parser {
       return nil
     }
 
-    // skip parsing expressions for now
-    while !curTokenIs(.SEMICOLON) {
+    nextToken()
+    stmt.value = parseExpression(precedence: .LOWEST)
+
+    if peekTokenIs(.SEMICOLON) {
       nextToken()
     }
 

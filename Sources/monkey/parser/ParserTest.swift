@@ -2,37 +2,41 @@ func testParser() {
   Test.reset(suiteName: "ParserTest")
 
   test("let statements") {
-    let input = """
-      let x = 5;
-      let y = 10;
-      let foobar = 838383;
-      """
+    let cases: [(String, String, Any)] = [
+      ("let x = 5;", "x", 5),
+      ("let y = true;", "y", true),
+      ("let foobar = y;", "foobar", "y"),
+    ]
+    cases.forEach { (input, expectedIdentifier, expectedValue) in
+      guard let statements = expectStatements(input, 1) else {
+        return
+      }
 
-    guard let statements = expectStatements(input, 3) else {
-      return
-    }
+      guard let letStmt = testLetStatement(statements[0], expectedIdentifier) else {
+        return
+      }
 
-    for (idx, expectedIdentifier) in ["x", "y", "foobar"].enumerated() {
-      testLetStatement(statements[idx], expectedIdentifier)
+      expect(letStmt.value).toBeLiteralExpression(expectedValue)
     }
   }
 
   test("return statements") {
     let input = """
       return 5;
-      return 10;
-      return 993322;
+      return true;
+      return foobar;
       """
 
     guard let statements = expectStatements(input, 3) else {
       return
     }
 
-    for statement in statements {
+    for (statement, expected) in zip(statements, [5, true, "foobar"]) {
       guard let returnStmt = expectType(statement, ReturnStatement.self) else {
         return
       }
       expect(returnStmt.tokenLiteral).toEqual("return")
+      expect(returnStmt.returnValue).toBeLiteralExpression(expected)
     }
   }
 
@@ -352,17 +356,20 @@ func expectStatements(_ input: String, _ expectedNumStatements: Int) -> [Stateme
   return statements
 }
 
-func testLetStatement(_ statement: Statement?, _ name: String) {
+func testLetStatement(_ statement: Statement?, _ name: String) -> LetStatement? {
   guard let statement = expectType(statement, Statement.self) else {
-    return
+    return nil
   }
   guard let letStatement = expectType(statement, LetStatement.self) else {
-    return
+    return nil
   }
   if expect(letStatement.name?.value).toEqual(name) {
-    return
+    return nil
   }
-  expect(letStatement.name?.tokenLiteral).toEqual(name)
+  guard expect(letStatement.name?.tokenLiteral).toEqual(name) else {
+    return nil
+  }
+  return letStatement
 }
 
 func noParserErrors(_ parser: Parser) -> Bool {
