@@ -10,11 +10,14 @@ struct Repl {
     prompt()
     while let line = readLine() {
       let lexer = Lexer(line)
-      var token = lexer.nextToken()
-      while token.type != .EOF {
-        print(token)
-        token = lexer.nextToken()
+      let parser = Parser(lexer)
+      let program = parser.parseProgram()
+      if parser.errors.count != 0 {
+        print(" • \(parser.errors.joined(separator: "\n • "))".red)
+        prompt()
+        continue
       }
+      print(program)
       prompt()
     }
   }
