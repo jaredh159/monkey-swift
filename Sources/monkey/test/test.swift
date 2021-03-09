@@ -207,6 +207,14 @@ struct Expectation {
 
     return expect(infix.right).toBeLiteralExpression(right)
   }
+
+  @discardableResult
+  func toBeObject(int: Int) -> Bool {
+    guard let intObj = toBe(Integer.self) else {
+      return false
+    }
+    return expect(intObj.value).toEqual(int)
+  }
 }
 
 func expect(_ actual: Any?) -> Expectation {

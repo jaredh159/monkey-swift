@@ -7,6 +7,7 @@ if CommandLine.arguments[1] != "test" {
 }
 
 if CommandLine.arguments.count == 2 {
+  testEval()
   testLexer()
   testParser()
   testAst()
@@ -18,7 +19,9 @@ if CommandLine.arguments.count == 2 {
       testParser()
     case "ast":
       testAst()
+    case "eval", "evaluator":
+      testEval()
     default:
-      fatalError("unknown test targe")
+      fatalError("unknown test target")
   }
 }
