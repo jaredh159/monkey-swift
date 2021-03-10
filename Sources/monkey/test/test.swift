@@ -107,8 +107,9 @@ struct Expectation {
   @discardableResult
   func toBe<T>(_ expectedType: T.Type) -> T? {
     guard let knownType = actual as? T else {
+      let actualType = actual == nil ? "nil" : "\(type(of: actual))"
       Test.pushFail(
-        "expected `actual` to be type=\(expectedType.self), got=\(type(of: self.actual))")
+        "expected `actual` to be type=\(expectedType.self), got=\(actualType)")
       return nil
     }
     Test.pushPass()
@@ -214,6 +215,14 @@ struct Expectation {
       return false
     }
     return expect(intObj.value).toEqual(int)
+  }
+
+  @discardableResult
+  func toBeObject(bool: Bool) -> Bool {
+    guard let boolObj = toBe(Boolean.self) else {
+      return false
+    }
+    return expect(boolObj.value).toEqual(bool)
   }
 }
 

@@ -9,6 +9,8 @@ func eval(_ node: Node?) -> Object? {
       return eval(exprStmt.expression)
     case let intLit as IntegerLiteral:
       return Integer(value: intLit.value)
+    case let boolLit as BooleanLiteral:
+      return boolLit.value ? Boolean.true : Boolean.false
     default:
       return nil
   }

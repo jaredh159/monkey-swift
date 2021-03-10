@@ -12,6 +12,16 @@ func testEval() {
     }
   }
 
+  test("eval boolean expression") {
+    let cases = [
+      ("true", true),
+      ("false", false),
+    ]
+    cases.forEach { (input, expected) in
+      expect(testEval(input)).toBeObject(bool: expected)
+    }
+  }
+
   Test.report()
 }
 

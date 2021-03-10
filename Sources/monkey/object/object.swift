@@ -24,17 +24,28 @@ struct Integer: Object {
   var inspect: String { "\(self.value)" }
 }
 
-struct Boolean: Object {
+// Boolean is a class for sharing reference-semantic true/false singletons
+class Boolean: Object {
   var value: Bool
   var type = ObjectType.boolean
   var inspect: String { "\(self.value)" }
+
+  static let `true` = Boolean(value: true)
+  static let `false` = Boolean(value: false)
+
+  init(value: Bool) {
+    self.value = value
+  }
 }
 
-struct Null: Object {
+class NullObject: Object {
   var value: Void = ()
   var type = ObjectType.null
   var inspect: String { "null" }
 }
+
+// shared reference-semantic null singleton
+let Null = NullObject()
 
 struct Error: Object {
   var value: String
