@@ -33,6 +33,10 @@ class Boolean: Object {
   static let `true` = Boolean(value: true)
   static let `false` = Boolean(value: false)
 
+  static func from(_ bool: Bool) -> Boolean {
+    return bool ? .true : .false
+  }
+
   init(value: Bool) {
     self.value = value
   }
