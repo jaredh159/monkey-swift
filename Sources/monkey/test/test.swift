@@ -48,10 +48,21 @@ struct Test {
 struct Expectation {
   let actual: Any?
 
+  var T: String {
+    if actual == nil {
+      return "nil"
+    }
+    let typeStr = "\(type(of: actual))"
+    if typeStr.hasPrefix("Optional<") {
+      return "Optional<\(type(of: actual!))>"
+    }
+    return typeStr
+  }
+
   @discardableResult
   func toEqual(_ expected: Int) -> Bool {
     guard let actual = actual as? Int else {
-      Test.pushFail("`actual` val was not Int, got type=\(type(of: self.actual))")
+      Test.pushFail("`actual` val was not Int, got type=\(self.T)")
       return false
     }
     if actual != expected {
@@ -65,7 +76,7 @@ struct Expectation {
   @discardableResult
   func toEqual(_ expected: String) -> Bool {
     guard let actual = actual as? String else {
-      Test.pushFail("`actual` val was not String, got type=\(type(of: self.actual))")
+      Test.pushFail("`actual` val was not String, got type=\(self.T)")
       return false
     }
     if actual != expected {
@@ -79,7 +90,7 @@ struct Expectation {
   @discardableResult
   func toEqual(_ expected: Bool) -> Bool {
     guard let actual = actual as? Bool else {
-      Test.pushFail("`actual` val was not Bool, got type=\(type(of: self.actual))")
+      Test.pushFail("`actual` val was not Bool, got type=\(self.T)")
       return false
     }
     if actual != expected {
@@ -93,7 +104,7 @@ struct Expectation {
   @discardableResult
   func toEqual(_ expected: TokenType) -> Bool {
     guard let actual = actual as? TokenType else {
-      Test.pushFail("`actual` val was not TokenType, got type=\(type(of: self.actual))")
+      Test.pushFail("`actual` val was not TokenType, got type=\(self.T)")
       return false
     }
     if actual.rawValue != expected.rawValue {
@@ -107,9 +118,8 @@ struct Expectation {
   @discardableResult
   func toBe<T>(_ expectedType: T.Type) -> T? {
     guard let knownType = actual as? T else {
-      let actualType = actual == nil ? "nil" : "\(type(of: actual))"
       Test.pushFail(
-        "expected `actual` to be type=\(expectedType.self), got=\(actualType)")
+        "expected `actual` to be type=\(expectedType.self), got=\(self.T)")
       return nil
     }
     Test.pushPass()
@@ -119,7 +129,7 @@ struct Expectation {
   @discardableResult
   func toBeNil() -> Any? {
     if actual != nil {
-      Test.pushFail("expected `actual` to be `nil`, got type=\(type(of: self.actual))")
+      Test.pushFail("expected `actual` to be `nil`, got type=\(self.T)")
       return Optional.some(actual!)
     }
     Test.pushPass()

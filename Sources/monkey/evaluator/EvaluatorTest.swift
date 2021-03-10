@@ -5,6 +5,8 @@ func testEval() {
     let cases = [
       ("5", 5),
       ("10", 10),
+      ("-5", -5),
+      ("-10", -10),
     ]
     cases.forEach { (input, expected) in
       let evaluated = testEval(input)
@@ -16,6 +18,19 @@ func testEval() {
     let cases = [
       ("true", true),
       ("false", false),
+    ]
+    cases.forEach { (input, expected) in
+      expect(testEval(input)).toBeObject(bool: expected)
+    }
+  }
+
+  test("bang operator") {
+    let cases = [
+      ("!false", true),
+      ("!5", false),
+      ("!!true", true),
+      ("!!false", false),
+      ("!!5", true),
     ]
     cases.forEach { (input, expected) in
       expect(testEval(input)).toBeObject(bool: expected)
