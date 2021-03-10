@@ -1,6 +1,6 @@
-func eval(_ node: Node?) -> Object {
+func eval(_ node: Node?) -> Object? {
   guard let node = node else {
-    return Error("unexpected nil node")
+    return nil
   }
   switch node {
     case let program as ProgramProtocol:
@@ -10,12 +10,12 @@ func eval(_ node: Node?) -> Object {
     case let intLit as IntegerLiteral:
       return Integer(value: intLit.value)
     default:
-      return Error("unexpected node type")
+      return nil
   }
 }
 
-func evalStatements(_ statements: [Statement]) -> Object {
-  var result: Object = Null()
+func evalStatements(_ statements: [Statement]) -> Object? {
+  var result: Object? = nil
   for statement in statements {
     result = eval(statement)
   }

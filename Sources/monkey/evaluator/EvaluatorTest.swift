@@ -15,7 +15,7 @@ func testEval() {
   Test.report()
 }
 
-func testEval(_ input: String) -> Object {
+func testEval(_ input: String) -> Object? {
   let parser = Parser(Lexer(input))
   let program = parser.parseProgram()
   return eval(program)

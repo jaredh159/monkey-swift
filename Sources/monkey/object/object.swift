@@ -9,9 +9,13 @@ enum ObjectType: String, CustomStringConvertible {
   }
 }
 
-protocol Object {
+protocol Object: CustomStringConvertible {
   var type: ObjectType { get }
   var inspect: String { get }
+}
+
+extension Object {
+  var description: String { inspect }
 }
 
 struct Integer: Object {
