@@ -4,7 +4,7 @@ func eval(_ node: Node?) -> Object? {
   }
   switch node {
     case let program as ProgramProtocol:
-      return evalStatements(program.statements)
+      return evalProgram(program)
     case let exprStmt as ExpressionStatement:
       return eval(exprStmt.expression)
     case let intLit as IntegerLiteral:
@@ -18,6 +18,16 @@ func eval(_ node: Node?) -> Object? {
       let right = eval(infixExp.right)
       let left = eval(infixExp.left)
       return evalInfixExpression(operator: infixExp.operator, lhs: left, rhs: right)
+    case let blockStmt as BlockStatement:
+      return evalBlockStatement(blockStmt)
+    case let ifExp as IfExpression:
+      return evalIfExpression(ifExp)
+    case let returnStmt as ReturnStatement:
+      if let val = eval(returnStmt.returnValue) {
+        return ReturnValue(value: val)
+      } else {
+        return nil
+      }
     default:
       return nil
   }
@@ -85,21 +95,59 @@ func evalMinusPrefixOperatorExpression(rhs: Object?) -> Object {
 
 func evalBangOperatorExpression(rhs: Object?) -> Boolean {
   switch rhs {
-    case let bool as Boolean where bool === Boolean.false:
+    case Boolean.false:
       return .true
-    case let bool as Boolean where bool === Boolean.true:
+    case Boolean.true:
       return .false
-    case _ as NullObject:
+    case Null:
       return .true
     default:
       return .false
   }
 }
 
-func evalStatements(_ statements: [Statement]) -> Object? {
+func evalIfExpression(_ ifExp: IfExpression) -> Object? {
+  let condition = eval(ifExp.condition)
+  if isTruthy(condition) {
+    return eval(ifExp.consequence)
+  } else if let alt = ifExp.alternative {
+    return eval(alt)
+  } else {
+    return Null
+  }
+}
+
+func isTruthy(_ obj: Object?) -> Bool {
+  switch obj {
+    case Boolean.false:
+      return false
+    case Boolean.true:
+      return true
+    case Null:
+      return false
+    default:
+      return true
+  }
+}
+
+func evalProgram(_ program: ProgramProtocol) -> Object? {
   var result: Object? = nil
-  for statement in statements {
+  for statement in program.statements {
     result = eval(statement)
+    if let returnValue = result as? ReturnValue {
+      return returnValue.value
+    }
+  }
+  return result
+}
+
+func evalBlockStatement(_ block: BlockStatement) -> Object? {
+  var result: Object? = nil
+  for statement in block.statements {
+    result = eval(statement)
+    if let _ = result as? ReturnValue {
+      return result
+    }
   }
   return result
 }

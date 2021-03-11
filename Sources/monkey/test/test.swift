@@ -234,6 +234,14 @@ struct Expectation {
     }
     return expect(boolObj.value).toEqual(bool)
   }
+
+  @discardableResult
+  func toBeNull() -> Bool {
+    guard let _ = toBe(NullObject.self) else {
+      return false
+    }
+    return true
+  }
 }
 
 func expect(_ actual: Any?) -> Expectation {

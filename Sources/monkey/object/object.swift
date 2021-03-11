@@ -3,6 +3,7 @@ enum ObjectType: String, CustomStringConvertible {
   case boolean
   case null
   case error
+  case returnValue = "return_value"
 
   var description: String {
     return self.rawValue.uppercased()
@@ -59,4 +60,24 @@ struct Error: Object {
   init(_ msg: String) {
     self.value = msg
   }
+}
+
+struct ReturnValue: Object {
+  var value: Object
+  var type = ObjectType.returnValue
+  var inspect: String { self.value.inspect }
+}
+
+func ~= (pattern: Boolean, value: Object?) -> Bool {
+  if let bool = value as? Boolean {
+    return pattern.value == bool.value
+  }
+  return false
+}
+
+func ~= (pattern: NullObject, value: Object?) -> Bool {
+  if let _ = value as? NullObject {
+    return true
+  }
+  return false
 }
