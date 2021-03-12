@@ -26,13 +26,15 @@ class Parser {
     }
   }
 
-  func parseExpressionStatement() -> ExpressionStatement {
-    var stmt = ExpressionStatement(token: curToken)
-    stmt.expression = parseExpression(precedence: .LOWEST)
+  func parseExpressionStatement() -> ExpressionStatement? {
+    let startToken = curToken
+    guard let expression = parseExpression(precedence: .LOWEST) else {
+      return nil
+    }
     if peekTokenIs(.SEMICOLON) {
       nextToken()
     }
-    return stmt
+    return ExpressionStatement(token: startToken, expression: expression)
   }
 
   func parseExpression(precedence: Precedence) -> Expression? {
@@ -61,37 +63,34 @@ class Parser {
   }
 
   func parseReturnStatement() -> ReturnStatement? {
-    var stmt = ReturnStatement(token: curToken)
+    let startToken = curToken
     nextToken()
-
-    stmt.returnValue = parseExpression(precedence: .LOWEST)
-
+    guard let returnValue = parseExpression(precedence: .LOWEST) else {
+      return nil
+    }
     if peekTokenIs(.SEMICOLON) {
       nextToken()
     }
-
-    return stmt
+    return ReturnStatement(token: startToken, returnValue: returnValue)
   }
 
   func parseLetStatement() -> LetStatement? {
-    var stmt = LetStatement(token: curToken)
+    let startToken = curToken
     if !expectPeek(.IDENT) {
       return nil
     }
-
-    stmt.name = Identifier(token: curToken, value: curToken.literal)
+    let name = Identifier(token: curToken, value: curToken.literal)
     if !expectPeek(.ASSIGN) {
       return nil
     }
-
     nextToken()
-    stmt.value = parseExpression(precedence: .LOWEST)
-
+    guard let value = parseExpression(precedence: .LOWEST) else {
+      return nil
+    }
     if peekTokenIs(.SEMICOLON) {
       nextToken()
     }
-
-    return stmt
+    return LetStatement(token: startToken, name: name, value: value)
   }
 
   func parseIdentifier() -> Identifier {
@@ -110,19 +109,24 @@ class Parser {
     return BooleanLiteral(token: curToken, value: curToken.type == .TRUE)
   }
 
-  func parsePrefixExpression() -> PrefixExpression {
-    var expr = PrefixExpression(token: curToken, operator: curToken.literal)
+  func parsePrefixExpression() -> PrefixExpression? {
+    let startToken = curToken
     nextToken()
-    expr.right = parseExpression(precedence: .PREFIX)
-    return expr
+    guard let right = parseExpression(precedence: .PREFIX) else {
+      return nil
+    }
+    return PrefixExpression(token: startToken, operator: startToken.literal, right: right)
   }
 
-  func parseInfixExpression(_ left: Expression) -> InfixExpression {
-    var infix = InfixExpression(token: curToken, left: left, operator: curToken.literal)
+  func parseInfixExpression(_ left: Expression) -> InfixExpression? {
+    let startToken = curToken
     let precedence = curPrecedence()
     nextToken()
-    infix.right = parseExpression(precedence: precedence)
-    return infix
+    guard let right = parseExpression(precedence: precedence) else {
+      return nil
+    }
+    return InfixExpression(
+      token: startToken, left: left, operator: startToken.literal, right: right)
   }
 
   func parseGroupedExpression() -> Expression? {
@@ -135,19 +139,22 @@ class Parser {
   }
 
   func parseIfExpression() -> Expression? {
-    var expression = IfExpression(token: curToken)
+    let startToken = curToken
     guard expectPeek(.LPAREN) else {
       return nil
     }
     nextToken()
-    expression.condition = parseExpression(precedence: .LOWEST)
+    guard let condition = parseExpression(precedence: .LOWEST) else {
+      return nil
+    }
     guard expectPeek(.RPAREN) else {
       return nil
     }
     guard expectPeek(.LBRACE) else {
       return nil
     }
-    expression.consequence = parseBlockStatement()
+    let consequence = parseBlockStatement()
+    var expression = IfExpression(token: startToken, condition: condition, consequence: consequence)
     if peekTokenIs(.ELSE) {
       nextToken()
       guard expectPeek(.LBRACE) else {
@@ -171,16 +178,16 @@ class Parser {
   }
 
   func parseFunctionLiteral() -> FunctionLiteral? {
-    var fnLit = FunctionLiteral(token: curToken)
+    let startToken = curToken
     guard expectPeek(.LPAREN) else {
       return nil
     }
-    fnLit.parameters = parseFunctionParameters()
+    let parameters = parseFunctionParameters()
     guard expectPeek(.LBRACE) else {
       return nil
     }
-    fnLit.body = parseBlockStatement()
-    return fnLit
+    let body = parseBlockStatement()
+    return FunctionLiteral(token: startToken, parameters: parameters, body: body)
   }
 
   func parseFunctionParameters() -> [Identifier] {

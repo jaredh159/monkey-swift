@@ -56,20 +56,17 @@ struct Identifier: HasToken, Expression {
 
 struct ReturnStatement: HasToken, Statement {
   var token: Token
-  var returnValue: Expression?
+  var returnValue: Expression
 
   var string: String {
-    "\(tokenLiteral) \(returnValue?.string ?? "");"
+    "\(tokenLiteral) \(returnValue);"
   }
 }
 
 struct ExpressionStatement: HasToken, Statement {
   var token: Token
-  var expression: Expression?
-
-  var string: String {
-    expression?.string ?? ""
-  }
+  var expression: Expression
+  var string: String { expression.string }
 }
 
 struct IntegerLiteral: HasToken, Expression {
@@ -81,22 +78,16 @@ struct IntegerLiteral: HasToken, Expression {
 struct PrefixExpression: HasToken, Expression {
   var token: Token
   var `operator`: String
-  var right: Expression?
-
-  var string: String {
-    "(\(self.operator)\(right?.string ?? ""))"
-  }
+  var right: Expression
+  var string: String { "(\(self.operator)\(right))" }
 }
 
 struct InfixExpression: HasToken, Expression {
   var token: Token
   var left: Expression
   var `operator`: String
-  var right: Expression?
-
-  var string: String {
-    "(\(left) \(self.operator) \(right?.string ?? ""))"
-  }
+  var right: Expression
+  var string: String { "(\(left) \(self.operator) \(right))" }
 }
 
 struct BooleanLiteral: HasToken, Expression {
@@ -107,16 +98,15 @@ struct BooleanLiteral: HasToken, Expression {
 
 struct IfExpression: HasToken, Expression {
   var token: Token
-  var condition: Expression?
-  var consequence: BlockStatement?
+  var condition: Expression
+  var consequence: BlockStatement
   var alternative: BlockStatement?
   var string: String {
     var alt = ""
     if let alternative = alternative {
       alt = "else \(alternative)"
     }
-    return
-      "if\(condition?.string ?? "") \(consequence?.string ?? "")\(alt)"
+    return "if\(condition) \(consequence)\(alt)"
   }
 }
 
@@ -132,16 +122,16 @@ struct BlockStatement: HasToken, Statement {
 struct FunctionLiteral: HasToken, Expression {
   var token: Token
   var parameters: [Identifier] = []
-  var body: BlockStatement?
+  var body: BlockStatement
 
   var string: String {
     let params = parameters.map { $0.string }.joined(separator: ", ")
-    return "\(tokenLiteral) (\(params)) \(body?.string ?? "")"
+    return "\(tokenLiteral) (\(params)) \(body)"
   }
 }
 
 struct CallExpression: HasToken, Expression {
-  var token: Token  // the `(` token
+  var token: Token
   var function: Expression  // Identifier || FunctionLiteral
   var arguments: [Expression] = []
 

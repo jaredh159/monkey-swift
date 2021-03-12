@@ -165,7 +165,7 @@ func testEval() {
     let input = "fn(x) { x + 2; };"
     let evaluated = testEval(input)
     guard let fn = expect(evaluated).toBe(Function.self) else {
-       return
+      return
     }
     guard expect(fn.parameters.count).toEqual(1) else {
       return

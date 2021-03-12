@@ -73,7 +73,7 @@ func testParser() {
       guard let exprStmt = expectFirstExpr(input, 1) else {
         return
       }
-      guard let exp = expectType(exprStmt.expression!, PrefixExpression.self) else {
+      guard let exp = expectType(exprStmt.expression, PrefixExpression.self) else {
         return
       }
       expect(exp.operator).toEqual(op)
@@ -280,10 +280,7 @@ func testParser() {
     }
     expect(fnLit.parameters[0]).toBeLiteralExpression("x")
     expect(fnLit.parameters[1]).toBeLiteralExpression("y")
-    guard let body = fnLit.body else {
-      Test.pushFail("unexpected nil for function literal body")
-      return
-    }
+    let body = fnLit.body
     guard expect(body.statements.count).toEqual(1) else {
       return
     }
@@ -363,10 +360,10 @@ func testLetStatement(_ statement: Statement?, _ name: String) -> LetStatement? 
   guard let letStatement = expectType(statement, LetStatement.self) else {
     return nil
   }
-  if expect(letStatement.name?.value).toEqual(name) {
+  if expect(letStatement.name.value).toEqual(name) {
     return nil
   }
-  guard expect(letStatement.name?.tokenLiteral).toEqual(name) else {
+  guard expect(letStatement.name.tokenLiteral).toEqual(name) else {
     return nil
   }
   return letStatement
