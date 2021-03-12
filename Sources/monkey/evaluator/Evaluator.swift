@@ -1,46 +1,64 @@
-func eval(_ node: Node?) -> Object {
+func eval(_ node: Node?, _ env: Environment) -> Object {
   switch node {
     case let program as ProgramProtocol:
-      return evalProgram(program)
+      return evalProgram(program, env)
     case let exprStmt as ExpressionStatement:
-      return eval(exprStmt.expression)
+      return eval(exprStmt.expression, env)
     case let intLit as IntegerLiteral:
       return Integer(value: intLit.value)
     case let boolLit as BooleanLiteral:
       return Boolean.from(boolLit.value)
     case let prefixExp as PrefixExpression:
-      let right = eval(prefixExp.right)
+      let right = eval(prefixExp.right, env)
       if right.isError {
         return right
       }
       return evalPrefixExpression(op: prefixExp.operator, rhs: right)
     case let infixExp as InfixExpression:
-      let right = eval(infixExp.right)
+      let right = eval(infixExp.right, env)
       if right.isError {
         return right
       }
-      let left = eval(infixExp.left)
+      let left = eval(infixExp.left, env)
       if left.isError {
         return left
       }
       return evalInfixExpression(operator: infixExp.operator, lhs: left, rhs: right)
     case let blockStmt as BlockStatement:
-      return evalBlockStatement(blockStmt)
+      return evalBlockStatement(blockStmt, env)
     case let ifExp as IfExpression:
-      return evalIfExpression(ifExp)
+      return evalIfExpression(ifExp, env)
     case let returnStmt as ReturnStatement:
-      let returnValue = eval(returnStmt.returnValue)
+      let returnValue = eval(returnStmt.returnValue, env)
       if returnValue.isError {
         return returnValue
       }
       return ReturnValue(value: returnValue)
+    case let letStmt as LetStatement:
+      let val = eval(letStmt.value, env)
+      if val.isError {
+        return val
+      }
+      guard let identifier = letStmt.name?.value else {
+        return Error("unexpected missing let statement name")
+      }
+      return env.set(identifier, val)  // is this the right return value?
+    case let identifier as Identifier:
+      return evalIdentifier(identifier, env)
     default:
       return Error("unexpected node type \(node?.string ?? "nil")")
   }
 }
 
+func evalIdentifier(_ ident: Identifier, _ env: Environment) -> Object {
+  guard let value = env.get(ident.value) else {
+    return Error("identifier not found: \(ident.value)")
+  }
+  return value
+}
+
 func evalPrefixExpression(op: String, rhs: Object?) -> Object {
-  switch op{
+  switch op {
     case "!":
       return evalBangOperatorExpression(rhs: rhs)
     case "-":
@@ -114,14 +132,14 @@ func evalBangOperatorExpression(rhs: Object?) -> Boolean {
   }
 }
 
-func evalIfExpression(_ ifExp: IfExpression) -> Object {
-  let condition = eval(ifExp.condition)
+func evalIfExpression(_ ifExp: IfExpression, _ env: Environment) -> Object {
+  let condition = eval(ifExp.condition, env)
   if condition.isError {
     return condition
   } else if isTruthy(condition) {
-    return eval(ifExp.consequence)
+    return eval(ifExp.consequence, env)
   } else if let alt = ifExp.alternative {
-    return eval(alt)
+    return eval(alt, env)
   } else {
     return Null
   }
@@ -140,10 +158,10 @@ func isTruthy(_ obj: Object?) -> Bool {
   }
 }
 
-func evalProgram(_ program: ProgramProtocol) -> Object {
+func evalProgram(_ program: ProgramProtocol, _ env: Environment) -> Object {
   var result: Object = Error("program failed to evaluate")
   for statement in program.statements {
-    result = eval(statement)
+    result = eval(statement, env)
     if let returnValue = result as? ReturnValue {
       return returnValue.value
     } else if let _ = result as? Error {
@@ -153,10 +171,10 @@ func evalProgram(_ program: ProgramProtocol) -> Object {
   return result
 }
 
-func evalBlockStatement(_ block: BlockStatement) -> Object {
+func evalBlockStatement(_ block: BlockStatement, _ env: Environment) -> Object {
   var result: Object = Error("unexpected empty block statement")
   for statement in block.statements {
-    result = eval(statement)
+    result = eval(statement, env)
     switch result.type {
       case .returnValue, .error:
         return result

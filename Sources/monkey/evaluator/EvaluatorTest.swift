@@ -138,10 +138,26 @@ func testEval() {
         "if (10 > 1) { if (10 > 1) { return true + false } return 1 }",
         "unknown operator: BOOLEAN + BOOLEAN"
       ),
+      (
+        "foobar",
+        "identifier not found: foobar"
+      ),
     ]
     cases.forEach { (input, expectedError) in
       expect(testEval(input)).toBeObject(error: expectedError)
 
+    }
+  }
+
+  test("let statements") {
+    let cases = [
+      ("let a = 5; a;", 5),
+      ("let a = 5 * 5; a;", 25),
+      ("let a = 5; let b = a; b;", 5),
+      ("let a = 5; let b = a; let c = a + b + 5; c;", 15),
+    ]
+    cases.forEach { (input, expectedInt) in
+      expect(testEval(input)).toBeObject(int: expectedInt)
     }
   }
 
@@ -151,5 +167,5 @@ func testEval() {
 func testEval(_ input: String) -> Object? {
   let parser = Parser(Lexer(input))
   let program = parser.parseProgram()
-  return eval(program)
+  return eval(program, Environment())
 }

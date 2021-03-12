@@ -8,6 +8,7 @@ struct Repl {
 
   static func start() {
     prompt()
+    let env = Environment()
     while let line = readLine() {
       let lexer = Lexer(line)
       let parser = Parser(lexer)
@@ -17,7 +18,7 @@ struct Repl {
         prompt()
         continue
       }
-      print(eval(program))
+      print(eval(program, env))
       prompt()
     }
   }
