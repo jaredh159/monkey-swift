@@ -17,9 +17,7 @@ struct Repl {
         prompt()
         continue
       }
-      if let evaluated = eval(program) {
-        print(evaluated)
-      }
+      print(eval(program))
       prompt()
     }
   }

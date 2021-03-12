@@ -236,6 +236,14 @@ struct Expectation {
   }
 
   @discardableResult
+  func toBeObject(error: String) -> Bool {
+    guard let errorObj = toBe(Error.self) else {
+      return false
+    }
+    return expect(errorObj.message).toEqual(error)
+  }
+
+  @discardableResult
   func toBeNull() -> Bool {
     guard let _ = toBe(NullObject.self) else {
       return false

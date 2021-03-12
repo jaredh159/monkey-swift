@@ -13,10 +13,22 @@ enum ObjectType: String, CustomStringConvertible {
 protocol Object: CustomStringConvertible {
   var type: ObjectType { get }
   var inspect: String { get }
+  var isError: Bool { get }
 }
 
 extension Object {
   var description: String { inspect }
+  var isError: Bool { self.type == .error }
+}
+
+extension Optional where Wrapped == Object {
+  var isError: Bool { self?.isError == true }
+  var type: String {
+    guard let obj = self else {
+      return "Optional(nil)"
+    }
+    return String(describing: obj.type)
+  }
 }
 
 struct Integer: Object {
@@ -53,12 +65,12 @@ class NullObject: Object {
 let Null = NullObject()
 
 struct Error: Object {
-  var value: String
+  var message: String
   var type = ObjectType.error
-  var inspect: String { "\(self.value)" }
+  var inspect: String { "ERROR: \(self.message)" }
 
-  init(_ msg: String) {
-    self.value = msg
+  init(_ message: String) {
+    self.message = message
   }
 }
 
