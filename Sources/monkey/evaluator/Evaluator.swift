@@ -39,12 +39,11 @@ func eval(_ node: Node?, _ env: Environment) -> Object {
       if val.isError {
         return val
       }
-      guard let identifier = letStmt.name?.value else {
-        return Error("unexpected missing let statement name")
-      }
-      return env.set(identifier, val)  // is this the right return value?
+      return env.set(letStmt.name!.value, val)
     case let identifier as Identifier:
       return evalIdentifier(identifier, env)
+    case let fnLit as FunctionLiteral:
+      return Function(parameters: fnLit.parameters, body: fnLit.body!, env: env)
     default:
       return Error("unexpected node type \(node?.string ?? "nil")")
   }

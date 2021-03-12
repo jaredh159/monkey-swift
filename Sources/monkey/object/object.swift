@@ -3,6 +3,7 @@ enum ObjectType: String, CustomStringConvertible {
   case boolean
   case null
   case error
+  case function
   case returnValue = "return_value"
 
   var description: String {
@@ -78,6 +79,18 @@ struct ReturnValue: Object {
   var value: Object
   var type = ObjectType.returnValue
   var inspect: String { self.value.inspect }
+}
+
+struct Function: Object {
+  var type = ObjectType.function
+  var parameters: [Identifier] = []
+  var body: BlockStatement
+  var env: Environment
+
+  var inspect: String {
+    let params = parameters.map { $0.string }.joined(separator: ", ")
+    return "fn(\(params)) {\n\(body.string)\n}"
+  }
 }
 
 func ~= (pattern: Boolean, value: Object?) -> Bool {

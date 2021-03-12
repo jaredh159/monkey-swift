@@ -40,11 +40,11 @@ struct Program: ProgramProtocol {
 
 struct LetStatement: HasToken, Statement {
   var token: Token
-  var name: Identifier?
-  var value: Expression?
+  var name: Identifier
+  var value: Expression
 
   var string: String {
-    "\(tokenLiteral) \(name?.string ?? "") = \(value?.string ?? "");"
+    "\(tokenLiteral) \(name) = \(value);"
   }
 }
 

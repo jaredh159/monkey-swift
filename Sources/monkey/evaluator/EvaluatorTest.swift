@@ -161,6 +161,21 @@ func testEval() {
     }
   }
 
+  test("function object") {
+    let input = "fn(x) { x + 2; };"
+    let evaluated = testEval(input)
+    guard let fn = expect(evaluated).toBe(Function.self) else {
+       return
+    }
+    guard expect(fn.parameters.count).toEqual(1) else {
+      return
+    }
+    guard expect(fn.parameters.first?.string).toEqual("x") else {
+      return
+    }
+    expect(fn.body.string).toEqual("(x + 2)")
+  }
+
   Test.report()
 }
 
