@@ -44,9 +44,56 @@ func eval(_ node: Node?, _ env: Environment) -> Object {
       return evalIdentifier(identifier, env)
     case let fnLit as FunctionLiteral:
       return Function(parameters: fnLit.parameters, body: fnLit.body, env: env)
+    case let callExp as CallExpression:
+      let function = eval(callExp.function, env)
+      if function.isError {
+        return function
+      }
+      let args = evalExpressions(callExp.arguments, env)
+      if args.count == 1 && args.first.isError {
+        return args.first!
+      }
+      return applyFunction(function, args)
     default:
       return Error("unexpected node type \(node?.string ?? "nil")")
   }
+}
+
+func applyFunction(_ obj: Object, _ args: [Object]) -> Object {
+  guard let fn = obj as? Function else {
+    return Error("not a function: \(obj.type)")
+  }
+  let extendedEnv = extendFunctionEnv(fn, args)
+  let evaluated = eval(fn.body, extendedEnv)
+  return unwrapReturnValue(evaluated)
+}
+
+func unwrapReturnValue(_ obj: Object) -> Object {
+  if let returnValue = obj as? ReturnValue {
+    return returnValue.value
+  }
+  return obj
+}
+
+func extendFunctionEnv(_ fn: Function, _ args: [Object]) -> Environment {
+  let env = Environment(enclosedBy: fn.env)
+  for (param, arg) in zip(fn.parameters, args) {
+    env.set(param.value, arg)
+  }
+  return env
+}
+
+func evalExpressions(_ expressions: [Expression], _ env: Environment) -> [Object] {
+  var results: [Object] = []
+  for expression in expressions {
+    let result = eval(expression, env)
+    if result.isError {
+      return [result]
+    } else {
+      results.append(result)
+    }
+  }
+  return results
 }
 
 func evalIdentifier(_ ident: Identifier, _ env: Environment) -> Object {

@@ -176,6 +176,31 @@ func testEval() {
     expect(fn.body.string).toEqual("(x + 2)")
   }
 
+  test("function application") {
+    let cases = [
+      ("let identity = fn(x) { x; }; identity(5);", 5),
+      ("let identity = fn(x) { return x; }; identity(5);", 5),
+      ("let double = fn(x) { x * 2; }; double(5);", 10),
+      ("let add = fn(x, y) { x + y; }; add(5, 5);", 10),
+      ("let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20),
+      ("fn(x) { x; }(5)", 5),
+    ]
+    cases.forEach({ input, expectedInt in
+      expect(testEval(input)).toBeObject(int: expectedInt)
+    })
+  }
+
+  test("closures") {
+    let input = """
+      let newAdder = fn(x) {
+        fn(y) { x + y };
+      };
+      let addTwo = newAdder(2);
+      addTwo(2);
+      """
+    expect(testEval(input)).toBeObject(int: 4)
+  }
+
   Test.report()
 }
 
