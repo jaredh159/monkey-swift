@@ -57,6 +57,8 @@ class Lexer {
         return Token(type: .GT, literal: ch)
       case "\0":
         return Token(type: .EOF, literal: "")
+      case "\"":
+        return Token(type: .STRING, literal: readString())
       case let digit where digit.isNumber:
         return Token(type: .INT, literal: readNumber())
       case let letter where isLetter(letter):
@@ -102,6 +104,16 @@ class Lexer {
       readChar()
       str.append(ch)
     }
+    return str
+  }
+
+  private func readString() -> String {
+    var str = String(readChar())
+    while peekChar() != "\"" {
+      readChar()
+      str.append(ch)
+    }
+    readChar()
     return str
   }
 

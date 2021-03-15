@@ -18,6 +18,8 @@ func testLexer() {
       return
       ==
       !=
+      "foobar"
+      "foo bar"
       """
 
     let tests: [(TokenType, String)] = [
@@ -76,6 +78,8 @@ func testLexer() {
       (.RETURN, "return"),
       (.EQ, "=="),
       (.NOT_EQ, "!="),
+      (.STRING, "foobar"),
+      (.STRING, "foo bar"),
       (.EOF, ""),
     ]
 

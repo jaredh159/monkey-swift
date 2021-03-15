@@ -26,6 +26,7 @@ enum TokenType: String, CustomStringConvertible {
   case RETURN
   case EQ
   case NOT_EQ
+  case STRING
 
   var description: String {
     return "." + self.rawValue
