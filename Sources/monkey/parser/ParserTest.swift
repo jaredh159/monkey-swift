@@ -332,14 +332,19 @@ func testParser() {
   }
 
   test("string literal expressions") {
-    let input = "\"hello world\""
-    guard let exprStmt = expectFirstExpr(input, 1) else {
-      return
+    let cases = [
+      ("\"hello world\"", "hello world"),
+      ("\"\"", ""),
+    ]
+    cases.forEach { (input, expectedStr) in
+      guard let exprStmt = expectFirstExpr(input, 1) else {
+        return
+      }
+      guard let strLit = expect(exprStmt.expression).toBe(StringLiteral.self) else {
+        return
+      }
+      expect(strLit.value).toEqual(expectedStr)
     }
-    guard let strLit = expect(exprStmt.expression).toBe(StringLiteral.self) else {
-      return
-    }
-    expect(strLit.value).toEqual("hello world")
   }
 
   Test.report()

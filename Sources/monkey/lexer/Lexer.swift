@@ -108,6 +108,10 @@ class Lexer {
   }
 
   private func readString() -> String {
+    if peekChar() == "\"" {
+      readChar()
+      return ""
+    }
     var str = String(readChar())
     while peekChar() != "\"" {
       readChar()

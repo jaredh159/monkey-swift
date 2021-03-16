@@ -62,12 +62,16 @@ func eval(_ node: Node?, _ env: Environment) -> Object {
 }
 
 func applyFunction(_ obj: Object, _ args: [Object]) -> Object {
-  guard let fn = obj as? Function else {
-    return Error("not a function: \(obj.type)")
+  switch obj {
+    case let fn as Function:
+      let extendedEnv = extendFunctionEnv(fn, args)
+      let evaluated = eval(fn.body, extendedEnv)
+      return unwrapReturnValue(evaluated)
+    case let builtin as BuiltIn:
+      return builtin.fn(args)
+    default:
+      return Error("not a function: \(obj.type)")
   }
-  let extendedEnv = extendFunctionEnv(fn, args)
-  let evaluated = eval(fn.body, extendedEnv)
-  return unwrapReturnValue(evaluated)
 }
 
 func unwrapReturnValue(_ obj: Object) -> Object {
@@ -99,10 +103,15 @@ func evalExpressions(_ expressions: [Expression], _ env: Environment) -> [Object
 }
 
 func evalIdentifier(_ ident: Identifier, _ env: Environment) -> Object {
-  guard let value = env.get(ident.value) else {
-    return Error("identifier not found: \(ident.value)")
+  if let value = env.get(ident.value) {
+    return value
   }
-  return value
+
+  if let builtin = MonkeyBuiltins[ident.value] {
+    return builtin
+  }
+
+  return Error("identifier not found: \(ident.value)")
 }
 
 func evalPrefixExpression(op: String, rhs: Object?) -> Object {

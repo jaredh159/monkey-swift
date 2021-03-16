@@ -215,6 +215,27 @@ func testEval() {
     expect(testEval(input)).toBeObject(string: "Hello World!")
   }
 
+  test("builtin functions") {
+    let cases: [(String, Any)] = [
+      ("len(\"\")", 0),
+      ("len(\"four\")", 4),
+      ("len(\"hello world\")", 11),
+      ("len(1)", "argument to `len` not supported, got=INTEGER"),
+      ("len(\"one\", \"two\")", "wrong number of arguments, got=2, want=1"),
+    ]
+    cases.forEach { (input, expected) in
+      let evaluated = testEval(input)
+      switch expected {
+        case let intVal as Int:
+          expect(evaluated).toBeObject(int: intVal)
+        case let errMsg as String:
+          expect(evaluated).toBeObject(error: errMsg)
+        default:
+          break
+      }
+    }
+  }
+
   Test.report()
 }
 
