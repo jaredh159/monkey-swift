@@ -4,6 +4,7 @@ enum ObjectType: String, CustomStringConvertible {
   case null
   case error
   case function
+  case string
   case returnValue = "return_value"
 
   var description: String {
@@ -32,10 +33,16 @@ extension Optional where Wrapped == Object {
   }
 }
 
+struct StringObject: Object {
+  var value: String
+  var type = ObjectType.string
+  var inspect: String { value }
+}
+
 struct Integer: Object {
   var value: Int
   var type = ObjectType.integer
-  var inspect: String { "\(self.value)" }
+  var inspect: String { "\(value)" }
 }
 
 // Boolean is a class for sharing reference-semantic true/false singletons

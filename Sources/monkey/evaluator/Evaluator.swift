@@ -8,6 +8,8 @@ func eval(_ node: Node?, _ env: Environment) -> Object {
       return Integer(value: intLit.value)
     case let boolLit as BooleanLiteral:
       return Boolean.from(boolLit.value)
+    case let strLit as StringLiteral:
+      return StringObject(value: strLit.value)
     case let prefixExp as PrefixExpression:
       let right = eval(prefixExp.right, env)
       if right.isError {
@@ -130,6 +132,13 @@ func evalInfixExpression(operator op: String, lhs: Object?, rhs: Object?) -> Obj
       default:
         return Error("unknown operator: \(lhs.type) \(op) \(rhs.type)")
     }
+  }
+
+  if let lhs = lhs as? StringObject, let rhs = rhs as? StringObject {
+    guard op == "+" else {
+      return Error("unknown operator: \(lhs.type) \(op) \(rhs.type)")
+    }
+    return StringObject(value: lhs.value + rhs.value)
   }
 
   return Error("type mismatch: \(lhs.type) \(op) \(rhs.type)")

@@ -331,6 +331,17 @@ func testParser() {
     expect(callExp.arguments[2]).toBeInfixExpression(left: 4, op: "+", right: 5)
   }
 
+  test("string literal expressions") {
+    let input = "\"hello world\""
+    guard let exprStmt = expectFirstExpr(input, 1) else {
+      return
+    }
+    guard let strLit = expect(exprStmt.expression).toBe(StringLiteral.self) else {
+      return
+    }
+    expect(strLit.value).toEqual("hello world")
+  }
+
   Test.report()
 }
 

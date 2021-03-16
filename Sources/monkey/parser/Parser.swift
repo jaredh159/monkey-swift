@@ -165,6 +165,10 @@ class Parser {
     return expression
   }
 
+  func parseStringLiteral() -> StringLiteral {
+    return StringLiteral(token: curToken)
+  }
+
   func parseBlockStatement() -> BlockStatement {
     var block = BlockStatement(token: curToken)
     nextToken()
@@ -275,6 +279,7 @@ class Parser {
     Parselet.register(prefix: self.parseGroupedExpression, .LPAREN)
     Parselet.register(prefix: self.parseIfExpression, .IF)
     Parselet.register(prefix: self.parseFunctionLiteral, .FUNCTION)
+    Parselet.register(prefix: self.parseStringLiteral, .STRING)
     Parselet.register(infix: self.parseInfixExpression, .PLUS)
     Parselet.register(infix: self.parseInfixExpression, .MINUS)
     Parselet.register(infix: self.parseInfixExpression, .SLASH)

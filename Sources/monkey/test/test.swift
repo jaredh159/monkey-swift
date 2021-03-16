@@ -220,6 +220,14 @@ struct Expectation {
   }
 
   @discardableResult
+  func toBeObject(string: String) -> Bool {
+    guard let strObj = toBe(StringObject.self) else {
+      return false
+    }
+    return expect(strObj.value).toEqual(string)
+  }
+
+  @discardableResult
   func toBeObject(int: Int) -> Bool {
     guard let intObj = toBe(Integer.self) else {
       return false

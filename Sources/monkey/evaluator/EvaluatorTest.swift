@@ -142,6 +142,10 @@ func testEval() {
         "foobar",
         "identifier not found: foobar"
       ),
+      (
+        "\"Hello\" - \"World\"",
+        "unknown operator: STRING - STRING"
+      ),
     ]
     cases.forEach { (input, expectedError) in
       expect(testEval(input)).toBeObject(error: expectedError)
@@ -199,6 +203,16 @@ func testEval() {
       addTwo(2);
       """
     expect(testEval(input)).toBeObject(int: 4)
+  }
+
+  test("string literal") {
+    let input = "\"Hello World!\""
+    expect(testEval(input)).toBeObject(string: "Hello World!")
+  }
+
+  test("string concatenation") {
+    let input = "\"Hello\" + \" \" + \"World!\""
+    expect(testEval(input)).toBeObject(string: "Hello World!")
   }
 
   Test.report()
