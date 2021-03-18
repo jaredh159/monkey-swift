@@ -213,13 +213,14 @@ class Parser {
 
   func parseCallExpression(function: Expression) -> CallExpression {
     let initialToken = curToken
-    let arguments = parseCallArguments()
+    let arguments = parseExpressionList(end: .RPAREN)
     return CallExpression(token: initialToken, function: function, arguments: arguments)
   }
 
-  func parseCallArguments() -> [Expression] {
+  func parseExpressionList(end: TokenType) -> [Expression] {
     var args: [Expression] = []
-    if peekTokenIs(.RPAREN) {
+    if peekTokenIs(end) {
+      nextToken()
       return args
     }
     nextToken()
@@ -233,8 +234,26 @@ class Parser {
         args.append(expr)
       }
     }
-    _ = expectPeek(.RPAREN)
+    _ = expectPeek(end)
     return args
+  }
+
+  func parseArrayLiteral() -> ArrayLiteral {
+    let initialToken = curToken
+    let elements = parseExpressionList(end: .RBRACKET)
+    return ArrayLiteral(token: initialToken, elements: elements)
+  }
+
+  func parseIndexExpression(_ left: Expression) -> IndexExpression? {
+    let initialToken = curToken
+    nextToken()
+    guard let index = parseExpression(precedence: .LOWEST) else {
+      return nil
+    }
+    guard expectPeek(.RBRACKET) else {
+      return nil
+    }
+    return IndexExpression(token: initialToken, left: left, index: index)
   }
 
   func curTokenIs(_ tokenType: TokenType) -> Bool {
@@ -280,6 +299,7 @@ class Parser {
     Parselet.register(prefix: self.parseIfExpression, .IF)
     Parselet.register(prefix: self.parseFunctionLiteral, .FUNCTION)
     Parselet.register(prefix: self.parseStringLiteral, .STRING)
+    Parselet.register(prefix: self.parseArrayLiteral, .LBRACKET)
     Parselet.register(infix: self.parseInfixExpression, .PLUS)
     Parselet.register(infix: self.parseInfixExpression, .MINUS)
     Parselet.register(infix: self.parseInfixExpression, .SLASH)
@@ -289,6 +309,7 @@ class Parser {
     Parselet.register(infix: self.parseInfixExpression, .LT)
     Parselet.register(infix: self.parseInfixExpression, .GT)
     Parselet.register(infix: self.parseCallExpression, .LPAREN)
+    Parselet.register(infix: self.parseIndexExpression, .LBRACKET)
   }
 
   private func nextToken() {

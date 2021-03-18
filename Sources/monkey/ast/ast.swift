@@ -75,6 +75,14 @@ struct StringLiteral: HasToken, Expression {
   var string: String { tokenLiteral }
 }
 
+struct ArrayLiteral: HasToken, Expression {
+  var token: Token
+  var elements: [Expression]
+  var string: String {
+    "[\(elements.map { $0.string }.joined(separator: ", "))]"
+  }
+}
+
 struct IntegerLiteral: HasToken, Expression {
   var token: Token
   var value: Int
@@ -94,6 +102,13 @@ struct InfixExpression: HasToken, Expression {
   var `operator`: String
   var right: Expression
   var string: String { "(\(left) \(self.operator) \(right))" }
+}
+
+struct IndexExpression: HasToken, Expression {
+  var token: Token
+  var left: Expression
+  var index: Expression
+  var string: String { "(\(left)[\(index)])" }
 }
 
 struct BooleanLiteral: HasToken, Expression {

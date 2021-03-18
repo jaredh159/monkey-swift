@@ -202,6 +202,14 @@ func testParser() {
         "add(a + b + c * d / f + g)",
         "add((((a + b) + ((c * d) / f)) + g))"
       ),
+      (
+        "a * [1, 2, 3, 4][b * c] * d",
+        "((a * ([1, 2, 3, 4][(b * c)])) * d)"
+      ),
+      (
+        "add(a * b[2], b[1], 2 * [1, 2][1])",
+        "add((a * (b[2])), (b[1]), (2 * ([1, 2][1])))"
+      ),
     ]
 
     cases.forEach { (input, expectedString) in
@@ -345,6 +353,36 @@ func testParser() {
       }
       expect(strLit.value).toEqual(expectedStr)
     }
+  }
+
+  test("parsing array literals") {
+    let input = "[1, 2 * 2, 3 + 3]"
+    guard let exprStmt = expectFirstExpr(input, 1) else {
+      return
+    }
+    guard let arrayLit = expect(exprStmt.expression).toBe(ArrayLiteral.self) else {
+      return
+    }
+    guard expect(arrayLit.elements.count).toEqual(3) else {
+      return
+    }
+    expect(arrayLit.elements[0]).toBeIntegerLiteral(1)
+    expect(arrayLit.elements[1]).toBeInfixExpression(left: 2, op: "*", right: 2)
+    expect(arrayLit.elements[2]).toBeInfixExpression(left: 3, op: "+", right: 3)
+  }
+
+  test("parsing index expressions") {
+    let input = "myArray[1 + 1]"
+    guard let exprStmt = expectFirstExpr(input, 1) else {
+      return
+    }
+    guard let indexExp = expect(exprStmt.expression).toBe(IndexExpression.self) else {
+      return
+    }
+    guard expect(indexExp.left).toBeIdentifier("myArray") else {
+      return
+    }
+    expect(indexExp.index).toBeInfixExpression(left: 1, op: "+", right: 1)
   }
 
   Test.report()

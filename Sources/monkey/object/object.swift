@@ -6,6 +6,7 @@ enum ObjectType: String, CustomStringConvertible {
   case builtin
   case function
   case string
+  case array
   case returnValue = "return_value"
 
   var description: String {
@@ -105,6 +106,15 @@ struct BuiltIn: Object {
   var type = ObjectType.builtin
   var fn: (_ args: [Object]) -> Object
   var inspect: String { "builtin function" }
+}
+
+struct ArrayObject: Object {
+  var type = ObjectType.array
+  var elements: [Object]
+  var inspect: String {
+    let elems = elements.map { $0.inspect }.joined(separator: ", ")
+    return "[\(elems)]"
+  }
 }
 
 func ~= (pattern: Boolean, value: Object?) -> Bool {

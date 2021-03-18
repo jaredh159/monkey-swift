@@ -57,6 +57,10 @@ class Lexer {
         return Token(type: .GT, literal: ch)
       case "\0":
         return Token(type: .EOF, literal: "")
+      case "[":
+        return Token(type: .LBRACKET, literal: ch)
+      case "]":
+        return Token(type: .RBRACKET, literal: ch)
       case "\"":
         return Token(type: .STRING, literal: readString())
       case let digit where digit.isNumber:

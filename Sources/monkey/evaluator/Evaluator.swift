@@ -56,9 +56,40 @@ func eval(_ node: Node?, _ env: Environment) -> Object {
         return args.first!
       }
       return applyFunction(function, args)
+    case let arrayLit as ArrayLiteral:
+      let elements = evalExpressions(arrayLit.elements, env)
+      if elements.count == 1 && elements.first.isError {
+        return elements.first!
+      }
+      return ArrayObject(elements: elements)
+    case let indexExpr as IndexExpression:
+      let left = eval(indexExpr.left, env)
+      if left.isError {
+        return left
+      }
+      let index = eval(indexExpr.index, env)
+      if index.isError {
+        return index
+      }
+      return evalIndexExpression(left, index)
     default:
       return Error("unexpected node type \(node?.string ?? "nil")")
   }
+}
+
+func evalIndexExpression(_ left: Object, _ index: Object) -> Object {
+  if let array = left as? ArrayObject, let int = index as? Integer {
+    return evalArrayIndexExpression(array, int.value)
+  }
+  return Error("index operator not supported: \(left.type)")
+}
+
+func evalArrayIndexExpression(_ array: ArrayObject, _ index: Int) -> Object {
+  let max = array.elements.count - 1
+  guard index >= 0 && index <= max else {
+    return Null
+  }
+  return array.elements[index]
 }
 
 func applyFunction(_ obj: Object, _ args: [Object]) -> Object {

@@ -216,10 +216,20 @@ func testEval() {
   }
 
   test("builtin functions") {
-    let cases: [(String, Any)] = [
+    let cases: [(String, Any?)] = [
       ("len(\"\")", 0),
       ("len(\"four\")", 4),
       ("len(\"hello world\")", 11),
+      ("len([1, 2, 3])", 3),
+      ("len([])", 0),
+      ("first([1, 2, 3])", 1),
+      ("first([])", nil),
+      ("last([1, 2, 3])", 3),
+      ("last([])", nil),
+      ("first(rest([1, 2, 3]))", 2),
+      ("first(rest([1]))", nil),
+      ("last(push([1, 2], 3)", 3),
+      ("first(push([1, 2], 3)", 1),
       ("len(1)", "argument to `len` not supported, got=INTEGER"),
       ("len(\"one\", \"two\")", "wrong number of arguments, got=2, want=1"),
     ]
@@ -230,8 +240,76 @@ func testEval() {
           expect(evaluated).toBeObject(int: intVal)
         case let errMsg as String:
           expect(evaluated).toBeObject(error: errMsg)
+        case nil:
+          expect(evaluated).toBeNull()
         default:
           break
+      }
+    }
+  }
+
+  test("array literals") {
+    let evaluated = testEval("[1, 2 * 2, 3 + 3]")
+    guard let array = expect(evaluated).toBe(ArrayObject.self) else {
+      return
+    }
+    guard expect(array.elements.count).toEqual(3) else {
+      return
+    }
+    expect(array.elements[0]).toBeObject(int: 1)
+    expect(array.elements[1]).toBeObject(int: 4)
+    expect(array.elements[2]).toBeObject(int: 6)
+  }
+
+  test("array index expressions") {
+    let cases = [
+      (
+        "[1, 2, 3][0]",
+        1
+      ),
+      (
+        "[1, 2, 3][1]",
+        2
+      ),
+      (
+        "[1, 2, 3][2]",
+        3
+      ),
+      (
+        "let i = 0; [1][i];",
+        1
+      ),
+      (
+        "[1, 2, 3][1 + 1];",
+        3
+      ),
+      (
+        "let myArray = [1, 2, 3]; myArray[2];",
+        3
+      ),
+      (
+        "let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];",
+        6
+      ),
+      (
+        "let myArray = [1, 2, 3]; let i = myArray[0]; myArray[i]",
+        2
+      ),
+      (
+        "[1, 2, 3][3]",
+        nil
+      ),
+      (
+        "[1, 2, 3][-1]",
+        nil
+      ),
+    ]
+    cases.forEach { (input, expectedInt) in
+      let evaluated = testEval(input)
+      if let int = expectedInt {
+        expect(evaluated).toBeObject(int: int)
+      } else {
+        expect(evaluated).toBeNull()
       }
     }
   }

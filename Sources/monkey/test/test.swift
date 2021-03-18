@@ -49,12 +49,12 @@ struct Expectation {
   let actual: Any?
 
   var T: String {
-    if actual == nil {
+    guard let actual = actual else {
       return "nil"
     }
     let typeStr = "\(type(of: actual))"
     if typeStr.hasPrefix("Optional<") {
-      return "Optional<\(type(of: actual!))>"
+      return "Optional<\(type(of: actual))>"
     }
     return typeStr
   }

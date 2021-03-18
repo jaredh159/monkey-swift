@@ -6,6 +6,7 @@ enum Precedence: Int, Comparable {
   case PRODUCT
   case PREFIX
   case CALL
+  case INDEX
 
   init(ofToken token: Token) {
     switch token.type {
@@ -27,6 +28,8 @@ enum Precedence: Int, Comparable {
         self = .PRODUCT
       case .LPAREN:
         self = .CALL
+      case .LBRACKET:
+        self = .INDEX
       default:
         self = .LOWEST
     }

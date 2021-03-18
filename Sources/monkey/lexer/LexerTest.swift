@@ -20,6 +20,7 @@ func testLexer() {
       !=
       "foobar"
       "foo bar"
+      [1, 2]
       """
 
     let tests: [(TokenType, String)] = [
@@ -80,6 +81,11 @@ func testLexer() {
       (.NOT_EQ, "!="),
       (.STRING, "foobar"),
       (.STRING, "foo bar"),
+      (.LBRACKET, "["),
+      (.INT, "1"),
+      (.COMMA, ","),
+      (.INT, "2"),
+      (.RBRACKET, "]"),
       (.EOF, ""),
     ]
 
