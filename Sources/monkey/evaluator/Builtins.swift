@@ -53,4 +53,9 @@ var MonkeyBuiltins: [String: BuiltIn] = [
     }
     return ArrayObject(elements: array.elements + [args[1]])
   },
+
+  "puts": BuiltIn { (_ args: [Object]) in
+    args.forEach { print($0.inspect) }
+    return Null
+  },
 ]
