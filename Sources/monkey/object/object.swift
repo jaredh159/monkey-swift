@@ -7,6 +7,7 @@ enum ObjectType: String, CustomStringConvertible {
   case function
   case string
   case array
+  case hash
   case returnValue = "return_value"
 
   var description: String {
@@ -35,20 +36,20 @@ extension Optional where Wrapped == Object {
   }
 }
 
-struct StringObject: Object {
+struct StringObject: Object, Hashable {
   var value: String
   var type = ObjectType.string
   var inspect: String { value }
 }
 
-struct Integer: Object {
+struct Integer: Object, Hashable {
   var value: Int
   var type = ObjectType.integer
   var inspect: String { "\(value)" }
 }
 
 // Boolean is a class for sharing reference-semantic true/false singletons
-class Boolean: Object {
+class Boolean: Object, Hashable {
   var value: Bool
   var type = ObjectType.boolean
   var inspect: String { "\(self.value)" }
@@ -62,6 +63,15 @@ class Boolean: Object {
 
   init(value: Bool) {
     self.value = value
+  }
+
+  static func == (lhs: Boolean, rhs: Boolean) -> Bool {
+    return lhs.value == rhs.value
+  }
+
+  func hash(into hasher: inout Hasher) {
+    hasher.combine(type)
+    hasher.combine(value)
   }
 }
 
@@ -114,6 +124,41 @@ struct ArrayObject: Object {
   var inspect: String {
     let elems = elements.map { $0.inspect }.joined(separator: ", ")
     return "[\(elems)]"
+  }
+}
+
+enum HashKey: Hashable {
+  case boolean(Boolean)
+  case integer(Integer)
+  case string(StringObject)
+
+  init?(_ object: Object) {
+    switch object {
+      case let string as StringObject:
+        self = .string(string)
+      case let integer as Integer:
+        self = .integer(integer)
+      case let boolean as Boolean:
+        self = .boolean(boolean)
+      default:
+        return nil
+    }
+  }
+}
+
+struct HashPair {
+  var key: Object
+  var value: Object
+}
+
+struct Hash: Object {
+  var type = ObjectType.hash
+  var pairs: [HashKey: HashPair]
+  var inspect: String {
+    let pairsStr = pairs.values.map { pair in
+      "\(pair.key.inspect): \(pair.value.inspect)"
+    }.joined(separator: ", ")
+    return "{\(pairsStr)}"
   }
 }
 

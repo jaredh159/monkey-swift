@@ -385,6 +385,66 @@ func testParser() {
     expect(indexExp.index).toBeInfixExpression(left: 1, op: "+", right: 1)
   }
 
+  test("parsing hash literals string keys") {
+    let input = #"{"one": 1, "two": 2, "three": 3}"#
+    guard let exprStmt = expectFirstExpr(input, 1) else {
+      return
+    }
+    guard let hashLit = expect(exprStmt.expression).toBe(HashLiteral.self) else {
+      return
+    }
+    guard expect(hashLit.pairs.count).toEqual(3) else {
+      return
+    }
+    let expectedPairs = [("one", 1), ("two", 2), ("three", 3)]
+
+    zip(hashLit.pairs, expectedPairs).forEach { (pair, expected) in
+      guard let key = expect(pair.key).toBe(StringLiteral.self) else {
+        return
+      }
+      expect(key.value).toEqual(expected.0)
+      expect(pair.value).toBeIntegerLiteral(expected.1)
+    }
+  }
+
+  test("parsing empty hash literal") {
+    guard let exprStmt = expectFirstExpr("{}", 1) else {
+      return
+    }
+    guard let hashLit = expect(exprStmt.expression).toBe(HashLiteral.self) else {
+      return
+    }
+    expect(hashLit.pairs.count).toEqual(0)
+  }
+
+  test("parsing hash literals expression values") {
+    let input = #"{"one": 0 + 1, "two": 10 - 8, "three": 15 / 5}"#
+    guard let exprStmt = expectFirstExpr(input, 1) else {
+      return
+    }
+    guard let hashLit = expect(exprStmt.expression).toBe(HashLiteral.self) else {
+      return
+    }
+    guard expect(hashLit.pairs.count).toEqual(3) else {
+      return
+    }
+
+    let expectedPairs = [
+      ("one", 0, "+", 1),
+      ("two", 10, "-", 8),
+      ("three", 15, "/", 5),
+    ]
+
+    zip(hashLit.pairs, expectedPairs).forEach { (pair, expected) in
+      guard let key = expect(pair.key).toBe(StringLiteral.self) else {
+        return
+      }
+      let (keyStr, left, op, right) = expected
+      expect(key.value).toEqual(keyStr)
+      expect(pair.value).toBeInfixExpression(left: left, op: op, right: right)
+    }
+  }
+
   Test.report()
 }
 

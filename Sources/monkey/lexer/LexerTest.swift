@@ -21,6 +21,7 @@ func testLexer() {
       "foobar"
       "foo bar"
       [1, 2]
+      {"foo": "bar"}
       """
 
     let tests: [(TokenType, String)] = [
@@ -86,6 +87,11 @@ func testLexer() {
       (.COMMA, ","),
       (.INT, "2"),
       (.RBRACKET, "]"),
+      (.LBRACE, "{"),
+      (.STRING, "foo"),
+      (.COLON, ":"),
+      (.STRING, "bar"),
+      (.RBRACE, "}"),
       (.EOF, ""),
     ]
 
@@ -93,7 +99,6 @@ func testLexer() {
 
     for (expectedType, expectedLiteral) in tests {
       let token = lexer.nextToken()
-      // print(token)
       expect(token.type).toEqual(expectedType)
       expect(token.literal).toEqual(expectedLiteral)
     }

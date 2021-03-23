@@ -161,3 +161,12 @@ struct CallExpression: HasToken, Expression {
     return "\(function)(\(args))"
   }
 }
+
+struct HashLiteral: HasToken, Expression {
+  var token: Token
+  var pairs: [(key: Expression, value: Expression)]
+
+  var string: String {
+    "{\(pairs.map { "\($0):\($1)" }.joined(separator: ", "))}"
+  }
+}

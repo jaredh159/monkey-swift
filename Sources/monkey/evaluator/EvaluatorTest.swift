@@ -143,8 +143,12 @@ func testEval() {
         "identifier not found: foobar"
       ),
       (
-        "\"Hello\" - \"World\"",
+        #""Hello" - "World""#,
         "unknown operator: STRING - STRING"
+      ),
+      (
+        #"{"name": "Monkey"}[fn(x) { x }];"#,
+        "unusable as hash key: FUNCTION"
       ),
     ]
     cases.forEach { (input, expectedError) in
@@ -308,6 +312,59 @@ func testEval() {
       let evaluated = testEval(input)
       if let int = expectedInt {
         expect(evaluated).toBeObject(int: int)
+      } else {
+        expect(evaluated).toBeNull()
+      }
+    }
+  }
+
+  test("hash literals") {
+    let input = """
+      let two = "two";
+      {
+        "one": 10 - 9,
+        two: 1 + 1,
+        "thr" + "ee": 6 / 2,
+        4: 4,
+        true: 5,
+        false: 6
+      }
+      """
+    let evaluated = testEval(input)
+    guard let hash = expect(evaluated).toBe(Hash.self) else {
+      return
+    }
+    let cases: [(HashKey?, Int)] = [
+      (HashKey(StringObject(value: "one")), 1),
+      (HashKey(StringObject(value: "two")), 2),
+      (HashKey(StringObject(value: "three")), 3),
+      (HashKey(Integer(value: 4)), 4),
+      (HashKey(Boolean.true), 5),
+      (HashKey(Boolean.false), 6),
+    ]
+    guard expect(cases.count).toEqual(hash.pairs.count) else {
+      return
+    }
+
+    cases.forEach { (hashKey, expectedRhs) in
+      expect(hash.pairs[hashKey!]?.value).toBeObject(int: expectedRhs)
+    }
+  }
+
+  test("hash index expressions") {
+    let cases = [
+      (#"{"foo": 5}["foo"]"#, 5),
+      (#"{"foo": 5}["bar"]"#, nil),
+      (#"let key = "foo"; {"foo": 5}[key]"#, 5),
+      (#"{}["foo"]"#, nil),
+      (#"{5: 5}[5]"#, 5),
+      (#"{true: 5}[true]"#, 5),
+      (#"{false: 5}[false]"#, 5),
+    ]
+    cases.forEach { (input, expected) in
+      let evaluated = testEval(input)
+      if let expected = expected {
+        expect(evaluated).toBeObject(int: expected)
       } else {
         expect(evaluated).toBeNull()
       }

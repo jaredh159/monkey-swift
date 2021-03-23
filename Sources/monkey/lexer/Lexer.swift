@@ -61,6 +61,8 @@ class Lexer {
         return Token(type: .LBRACKET, literal: ch)
       case "]":
         return Token(type: .RBRACKET, literal: ch)
+      case ":":
+        return Token(type: .COLON, literal: ch)
       case "\"":
         return Token(type: .STRING, literal: readString())
       case let digit where digit.isNumber:

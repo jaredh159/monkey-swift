@@ -29,6 +29,7 @@ enum TokenType: String, CustomStringConvertible {
   case STRING
   case LBRACKET
   case RBRACKET
+  case COLON
 
   var description: String {
     return "." + self.rawValue

@@ -256,6 +256,32 @@ class Parser {
     return IndexExpression(token: initialToken, left: left, index: index)
   }
 
+  func parseHashLiteral() -> HashLiteral? {
+    let initialToken = curToken
+    var pairs: [(key: Expression, value: Expression)] = []
+    while !peekTokenIs(.RBRACE) {
+      nextToken()
+      guard let key = parseExpression(precedence: .LOWEST) else {
+        return nil
+      }
+      guard expectPeek(.COLON) else {
+        return nil
+      }
+      nextToken()
+      guard let value = parseExpression(precedence: .LOWEST) else {
+        return nil
+      }
+      pairs.append((key: key, value: value))
+      if !peekTokenIs(.RBRACE) && !expectPeek(.COMMA) {
+        return nil
+      }
+    }
+    guard expectPeek(.RBRACE) else {
+      return nil
+    }
+    return HashLiteral(token: initialToken, pairs: pairs)
+  }
+
   func curTokenIs(_ tokenType: TokenType) -> Bool {
     return curToken.type == tokenType
   }
@@ -299,6 +325,7 @@ class Parser {
     Parselet.register(prefix: self.parseIfExpression, .IF)
     Parselet.register(prefix: self.parseFunctionLiteral, .FUNCTION)
     Parselet.register(prefix: self.parseStringLiteral, .STRING)
+    Parselet.register(prefix: self.parseHashLiteral, .LBRACE)
     Parselet.register(prefix: self.parseArrayLiteral, .LBRACKET)
     Parselet.register(infix: self.parseInfixExpression, .PLUS)
     Parselet.register(infix: self.parseInfixExpression, .MINUS)

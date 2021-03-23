@@ -72,16 +72,50 @@ func eval(_ node: Node?, _ env: Environment) -> Object {
         return index
       }
       return evalIndexExpression(left, index)
+    case let hashLiteral as HashLiteral:
+      return evalHashLiteral(hashLiteral, env)
     default:
       return Error("unexpected node type \(node?.string ?? "nil")")
   }
+}
+
+func evalHashLiteral(_ hashLit: HashLiteral, _ env: Environment) -> Object {
+  var pairs: [HashKey: HashPair] = [:]
+  for (keyNode, valueNode) in hashLit.pairs {
+    let key = eval(keyNode, env)
+    guard !key.isError else {
+      return key
+    }
+    guard let hashKey = HashKey(key) else {
+      return Error("unusable as hash key: \(key.type)")
+    }
+    let value = eval(valueNode, env)
+    guard !value.isError else {
+      return value
+    }
+    pairs[hashKey] = HashPair(key: key, value: value)
+  }
+  return Hash(pairs: pairs)
 }
 
 func evalIndexExpression(_ left: Object, _ index: Object) -> Object {
   if let array = left as? ArrayObject, let int = index as? Integer {
     return evalArrayIndexExpression(array, int.value)
   }
+  if let hash = left as? Hash {
+    return evalHashIndexExpression(hash, index)
+  }
   return Error("index operator not supported: \(left.type)")
+}
+
+func evalHashIndexExpression(_ hash: Hash, _ index: Object) -> Object {
+  guard let hashKey = HashKey(index) else {
+    return Error("unusable as hash key: \(index.type)")
+  }
+  guard let pair = hash.pairs[hashKey] else {
+    return Null
+  }
+  return pair.value
 }
 
 func evalArrayIndexExpression(_ array: ArrayObject, _ index: Int) -> Object {
