@@ -11,6 +11,10 @@ this time in **Swift**
 # start up the monkey REPL
 $ swift run
 
+# evaluate a fragment of monkey code and exit
+$ swift run monkey eval "1 + 2"
+# > 3
+
 # run ALL unit tests
 $ swift run monkey test
 
@@ -18,6 +22,9 @@ $ swift run monkey test
 $ swift run monkey test ast
 $ swift run monkey test lexer
 $ swift run monkey test parser
+
+# run binary unit test
+$ swift test
 
 # build: if you're using SourceKit-LSP outside of Xcode
 # this command helps SourceKit-LSP know about all source files
