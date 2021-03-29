@@ -22,6 +22,7 @@ if CommandLine.arguments.count == 2 {
   testLexer()
   testParser()
   testAst()
+  testCode()
 } else {
   switch CommandLine.arguments[2] {
     case "lexer":
@@ -32,6 +33,8 @@ if CommandLine.arguments.count == 2 {
       testAst()
     case "eval", "evaluator":
       testEval()
+    case "code":
+      testCode()
     default:
       fatalError("unknown test target")
   }
