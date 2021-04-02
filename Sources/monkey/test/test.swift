@@ -74,6 +74,20 @@ struct Expectation {
   }
 
   @discardableResult
+  func toEqual(_ expected: UInt8) -> Bool {
+    guard let actual = actual as? UInt8 else {
+      Test.pushFail("`actual` val was not UInt8, got type=\(self.T)")
+      return false
+    }
+    if actual != expected {
+      Test.pushFail("expected (UInt8) \"\(expected)\", got \"\(actual)\"")
+      return false
+    }
+    Test.pushPass()
+    return true
+  }
+
+  @discardableResult
   func toEqual(_ expected: String) -> Bool {
     guard let actual = actual as? String else {
       Test.pushFail("`actual` val was not String, got type=\(self.T)")
