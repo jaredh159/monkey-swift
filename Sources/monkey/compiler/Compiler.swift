@@ -24,6 +24,7 @@ class Compiler {
         if let err = compile(exprStmt.expression) {
           return err
         }
+        emit(opcode: .pop, operands: [])
       case let infixExpr as InfixExpression:
         if let err = compile(infixExpr.left) {
           return err
@@ -32,22 +33,30 @@ class Compiler {
           return err
         }
         switch infixExpr.operator {
+          case "-":
+            emit(opcode: .sub)
+          case "*":
+            emit(opcode: .mul)
+          case "/":
+            emit(opcode: .div)
           case "+":
-            emit(opcode: .add, operands: [])
+            emit(opcode: .add)
           default:
             return .unknownInfixOperator(infixExpr.operator)
         }
       case let intLit as IntegerLiteral:
         let integer = Integer(value: intLit.value)
         emit(opcode: .constant, operands: [addConstant(integer)])
+      case let bool as BooleanLiteral:
+        emit(opcode: bool.value ? .true : .false)
       default:
-        fatalError("whoops...")
+        fatalError("Unhandled node type: \(type(of: node))")
     }
     return nil
   }
 
   @discardableResult
-  private func emit(opcode: OpCode, operands: [Int]) -> Int {
+  private func emit(opcode: OpCode, operands: [Int] = []) -> Int {
     let ins = make(opcode, operands)
     return addInstruction(ins)
   }

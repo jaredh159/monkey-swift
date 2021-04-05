@@ -10,12 +10,70 @@ func testCompiler() {
   test("integer arithmetic") {
     let tests = [
       CompilerTestCase(
-        input: "1 + 2", expectedConstants: [1, 2],
+        input: "1 + 2",
+        expectedConstants: [1, 2],
         expectedInstructions: [
           make(.constant, [0]),
           make(.constant, [1]),
           make(.add, []),
-        ])
+          make(.pop, []),
+        ]),
+      CompilerTestCase(
+        input: "1; 2",
+        expectedConstants: [1, 2],
+        expectedInstructions: [
+          make(.constant, [0]),
+          make(.pop, []),
+          make(.constant, [1]),
+          make(.pop, []),
+        ]),
+
+      CompilerTestCase(
+        input: "1 - 2",
+        expectedConstants: [1, 2],
+        expectedInstructions: [
+          make(.constant, [0]),
+          make(.constant, [1]),
+          make(.sub, []),
+          make(.pop, []),
+        ]),
+
+      CompilerTestCase(
+        input: "1 * 2",
+        expectedConstants: [1, 2],
+        expectedInstructions: [
+          make(.constant, [0]),
+          make(.constant, [1]),
+          make(.mul, []),
+          make(.pop, []),
+        ]),
+
+      CompilerTestCase(
+        input: "2 / 1",
+        expectedConstants: [2, 1],
+        expectedInstructions: [
+          make(.constant, [0]),
+          make(.constant, [1]),
+          make(.div, []),
+          make(.pop, []),
+        ]),
+
+    ]
+    runCompilerTests(tests)
+  }
+
+  test("boolean expressions") {
+    let tests = [
+      CompilerTestCase(
+        input: "true",
+        expectedConstants: [],
+        expectedInstructions: [make(.true), make(.pop)]
+      ),
+      CompilerTestCase(
+        input: "false",
+        expectedConstants: [],
+        expectedInstructions: [make(.false), make(.pop)]
+      ),
     ]
     runCompilerTests(tests)
   }

@@ -8,6 +8,23 @@ func testVm() {
       ("1", 1),
       ("2", 2),
       ("1 + 2", 3),
+      ("1 - 2", -1),
+      ("1 * 2", 2),
+      ("4 / 2", 2),
+      ("50 / 2 * 2 + 10 - 5", 55),
+      ("5 + 5 + 5 + 5 - 10", 10),
+      ("2 * 2 * 2 * 2 * 2", 32),
+      ("5 * 2 + 10", 20),
+      ("5 + 2 * 10", 25),
+      ("5 * (2 + 10)", 60),
+    ]
+    runVmTests(cases)
+  }
+
+  test("boolean expressions") {
+    let cases: [VmTestCase] = [
+      ("true", true),
+      ("false", false),
     ]
     runVmTests(cases)
   }
@@ -30,7 +47,9 @@ func runVmTests(_ tests: [VmTestCase]) {
     }
     switch expected {
       case let int as Int:
-        expect(vm.stackTop).toBeObject(int: int)
+        expect(vm.lastPoppedStackElem).toBeObject(int: int)
+      case let bool as Bool:
+        expect(vm.lastPoppedStackElem).toBeObject(bool: bool)
       default:
         Test.pushFail("unhandled vm test type: \(type(of: expected))")
     }

@@ -5,8 +5,8 @@ class VirtualMachine {
   var sp: Int = 0
   private let STACK_SIZE = 2048
 
-  var stackTop: Object? {
-    return stack.last
+  var lastPoppedStackElem: Object? {
+    return stack[sp]
   }
 
   init(_ bytecode: Bytecode) {
@@ -27,18 +27,52 @@ class VirtualMachine {
           if let err = push(constants[constIndex]) {
             return err
           }
-        case .add:
-          let right = pop()
-          let left = pop()
-          guard let leftInt = left as? Integer, let rightInt = right as? Integer else {
-            return .unexpectedObjectType
+        case .add, .sub, .mul, .div:
+          if let err = executeBinaryOperation(op) {
+            return err
           }
-          let result = leftInt.value + rightInt.value
-          push(Integer(value: result))
+        case .pop:
+          pop()
+        case .true:
+          if let err = push(Boolean.true) {
+            return err
+          }
+        case .false:
+          if let err = push(Boolean.false) {
+            return err
+          }
       }
       ip += 1
     }
     return nil
+  }
+
+  private func executeBinaryOperation(_ op: OpCode) -> VirtualMachineError? {
+    let right = pop()
+    let left = pop()
+    if let leftInt = left as? Integer, let rightInt = right as? Integer {
+      return executeBinaryIntegerOperation(op, leftInt, rightInt)
+    }
+    return .unexpectedObjectType
+  }
+
+  private func executeBinaryIntegerOperation(_ op: OpCode, _ left: Integer, _ right: Integer)
+    -> VirtualMachineError?
+  {
+    var result = 0
+    switch op {
+      case .add:
+        result = left.value + right.value
+      case .sub:
+        result = left.value - right.value
+      case .mul:
+        result = left.value * right.value
+      case .div:
+        result = left.value / right.value
+      default:
+        return .unknownIntegerOperator(op.rawValue)
+    }
+    return push(Integer(value: result))
   }
 
   @discardableResult
@@ -46,11 +80,16 @@ class VirtualMachine {
     guard sp < STACK_SIZE else {
       return .stackOverflow
     }
-    stack.append(obj)
+    if sp == stack.count {
+      stack.append(obj)
+    } else {
+      stack[sp] = obj
+    }
     sp += 1
     return nil
   }
 
+  @discardableResult
   func pop() -> Object {
     let object = stack[sp - 1]
     sp -= 1
@@ -61,6 +100,7 @@ class VirtualMachine {
 enum VirtualMachineError: Swift.Error {
   case stackOverflow
   case invalidOpCode(UInt8)
+  case unknownIntegerOperator(UInt8)
   case unexpectedObjectType
   case unknown
 }
