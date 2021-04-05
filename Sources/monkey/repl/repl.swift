@@ -8,7 +8,6 @@ struct Repl {
 
   static func start() {
     prompt()
-    let env = Environment()
     while let line = readLine() {
       let lexer = Lexer(line)
       let parser = Parser(lexer)
@@ -18,7 +17,19 @@ struct Repl {
         prompt()
         continue
       }
-      print(eval(program, env))
+
+      let compiler = Compiler()
+      if let err = compiler.compile(program) {
+        print("Whoops! Compilation failed\n \(err)\n")
+        continue
+      }
+
+      let machine = VirtualMachine(compiler.bytecode())
+      if let err = machine.run() {
+        print("Whoops! Executing bytecode failed\n \(err)\n")
+        continue
+      }
+      print(machine.stackTop?.inspect ?? "")
       prompt()
     }
   }

@@ -3,7 +3,8 @@ func testCode() {
 
   test("make") {
     let cases: [(OpCode, [Int], [UInt8])] = [
-      (.constant, [65534], [OpCode.constant.asByte(), 255, 254])
+      (.constant, [65534], [OpCode.constant.asByte(), 255, 254]),
+      (.add, [], [OpCode.add.asByte()]),
     ]
 
     cases.forEach { (opcode, operands, expectedBytes) in
@@ -20,12 +21,12 @@ func testCode() {
 
   test("instructions string") {
     let instructions: [Instructions] = [
-      make(.constant, [1]),
+      make(.add, []),
       make(.constant, [2]),
       make(.constant, [65535]),
     ]
 
-    let expected = "[0000 OpConstant 1, 0003 OpConstant 2, 0006 OpConstant 65535]"
+    let expected = "[0000 OpAdd, 0001 OpConstant 2, 0004 OpConstant 65535]"
 
     let concatted: Instructions = instructions.flatMap { $0 }
     expect(concatted.string).toEqual(expected)

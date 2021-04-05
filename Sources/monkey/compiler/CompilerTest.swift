@@ -11,7 +11,11 @@ func testCompiler() {
     let tests = [
       CompilerTestCase(
         input: "1 + 2", expectedConstants: [1, 2],
-        expectedInstructions: [make(.constant, [0]), make(.constant, [1])])
+        expectedInstructions: [
+          make(.constant, [0]),
+          make(.constant, [1]),
+          make(.add, []),
+        ])
     ]
     runCompilerTests(tests)
   }
@@ -22,7 +26,7 @@ func testCompiler() {
 func runCompilerTests(_ tests: [CompilerTestCase]) {
   for test in tests {
     let program = parse(test.input)
-    var compiler = Compiler()
+    let compiler = Compiler()
     if let err = compiler.compile(program) {
       Test.pushFail("compiler error: \(err)")
       return

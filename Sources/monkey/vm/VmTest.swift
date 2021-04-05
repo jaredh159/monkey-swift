@@ -7,7 +7,7 @@ func testVm() {
     let cases: [VmTestCase] = [
       ("1", 1),
       ("2", 2),
-      ("1 + 2", 2),  // FIXME
+      ("1 + 2", 3),
     ]
     runVmTests(cases)
   }
@@ -18,7 +18,7 @@ func testVm() {
 func runVmTests(_ tests: [VmTestCase]) {
   tests.forEach { (input, expected) in
     let program = parse(input)
-    var compiler = Compiler()
+    let compiler = Compiler()
     if let err = compiler.compile(program) {
       Test.pushFail("compiler error: \(err)")
       return
