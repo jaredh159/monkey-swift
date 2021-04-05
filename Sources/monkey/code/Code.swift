@@ -25,12 +25,15 @@ struct Definition {
 }
 
 enum OpCode: UInt8 {
-  case constant = 0
+  case constant
+  case add
 
   func lookup() -> Definition {
     switch self {
       case .constant:
         return Definition(name: "constant", operandWidths: [2])
+      case .add:
+        return Definition(name: "add", operandWidths: [])
     }
   }
 
@@ -87,6 +90,8 @@ func fmtInstructions(_ def: Definition, _ operands: [Int]) -> String {
     return "ERROR: operand len \(operands.count) does not match defined \(operandCount)\n"
   }
   switch operandCount {
+    case 0:
+      return "Op\(def.name.capitalized)"
     case 1:
       return "Op\(def.name.capitalized) \(operands[0])"
     default:

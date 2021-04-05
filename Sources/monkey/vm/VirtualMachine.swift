@@ -27,12 +27,21 @@ class VirtualMachine {
           if let err = push(constants[constIndex]) {
             return err
           }
+        case .add:
+          let right = pop()
+          let left = pop()
+          guard let leftInt = left as? Integer, let rightInt = right as? Integer else {
+            return .unexpectedObjectType
+          }
+          let result = leftInt.value + rightInt.value
+          push(Integer(value: result))
       }
       ip += 1
     }
     return nil
   }
 
+  @discardableResult
   func push(_ obj: Object) -> VirtualMachineError? {
     guard sp < STACK_SIZE else {
       return .stackOverflow
@@ -41,10 +50,17 @@ class VirtualMachine {
     sp += 1
     return nil
   }
+
+  func pop() -> Object {
+    let object = stack[sp - 1]
+    sp -= 1
+    return object
+  }
 }
 
 enum VirtualMachineError: Swift.Error {
   case stackOverflow
   case invalidOpCode(UInt8)
+  case unexpectedObjectType
   case unknown
 }
