@@ -27,6 +27,12 @@ struct Definition {
 enum OpCode: UInt8 {
   case constant
   case add
+  case pop
+  case sub
+  case mul
+  case div
+  case `true`
+  case `false`
 
   func lookup() -> Definition {
     switch self {
@@ -34,6 +40,18 @@ enum OpCode: UInt8 {
         return Definition(name: "constant", operandWidths: [2])
       case .add:
         return Definition(name: "add", operandWidths: [])
+      case .pop:
+        return Definition(name: "pop", operandWidths: [])
+      case .sub:
+        return Definition(name: "sub", operandWidths: [])
+      case .div:
+        return Definition(name: "div", operandWidths: [])
+      case .mul:
+        return Definition(name: "mul", operandWidths: [])
+      case .true:
+        return Definition(name: "true", operandWidths: [])
+      case .false:
+        return Definition(name: "false", operandWidths: [])
     }
   }
 
@@ -42,7 +60,7 @@ enum OpCode: UInt8 {
   }
 }
 
-func make(_ opcode: OpCode, _ operands: [Int]) -> [UInt8] {
+func make(_ opcode: OpCode, _ operands: [Int] = []) -> [UInt8] {
   let def = opcode.lookup()
   var instructionLen = 1
   for width in def.operandWidths {

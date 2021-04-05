@@ -29,7 +29,7 @@ struct Repl {
         print("Whoops! Executing bytecode failed\n \(err)\n")
         continue
       }
-      print(machine.stackTop?.inspect ?? "")
+      print(machine.lastPoppedStackElem?.inspect ?? "")
       prompt()
     }
   }
