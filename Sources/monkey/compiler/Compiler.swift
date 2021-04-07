@@ -6,6 +6,7 @@ struct Bytecode {
 enum CompilerError: Swift.Error {
   case unknown
   case unknownInfixOperator(String)
+  case unknownPrefixOperator(String)
 }
 
 class Compiler {
@@ -26,6 +27,16 @@ class Compiler {
         }
         emit(opcode: .pop, operands: [])
       case let infixExpr as InfixExpression:
+        if infixExpr.operator == "<" {
+          if let err = compile(infixExpr.right) {
+            return err
+          }
+          if let err = compile(infixExpr.left) {
+            return err
+          }
+          emit(opcode: .greaterThan)
+          return nil
+        }
         if let err = compile(infixExpr.left) {
           return err
         }
@@ -41,6 +52,12 @@ class Compiler {
             emit(opcode: .div)
           case "+":
             emit(opcode: .add)
+          case ">":
+            emit(opcode: .greaterThan)
+          case "==":
+            emit(opcode: .equal)
+          case "!=":
+            emit(opcode: .notEqual)
           default:
             return .unknownInfixOperator(infixExpr.operator)
         }
@@ -49,6 +66,18 @@ class Compiler {
         emit(opcode: .constant, operands: [addConstant(integer)])
       case let bool as BooleanLiteral:
         emit(opcode: bool.value ? .true : .false)
+      case let prefixExpr as PrefixExpression:
+        if let err = compile(prefixExpr.right) {
+          return err
+        }
+        switch prefixExpr.operator {
+          case "!":
+            emit(opcode: .bang)
+          case "-":
+            emit(opcode: .minus)
+          default:
+            return .unknownPrefixOperator(prefixExpr.operator)
+        }
       default:
         fatalError("Unhandled node type: \(type(of: node))")
     }

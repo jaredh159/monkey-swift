@@ -33,18 +33,72 @@ class VirtualMachine {
           }
         case .pop:
           pop()
-        case .true:
-          if let err = push(Boolean.true) {
+        case .true, .false:
+          if let err = push(op == .true ? Boolean.true : Boolean.false) {
             return err
           }
-        case .false:
-          if let err = push(Boolean.false) {
+        case .equal, .notEqual, .greaterThan:
+          if let err = executeComparison(op) {
+            return err
+          }
+        case .bang:
+          let operand = pop()
+          switch operand {
+            case Boolean.false:
+              push(Boolean.true)
+            default:
+              push(Boolean.false)
+          }
+        case .minus:
+          if let err = executeMinusOperator() {
             return err
           }
       }
       ip += 1
     }
     return nil
+  }
+
+  private func executeMinusOperator() -> VirtualMachineError? {
+    let operand = pop()
+    guard let int = operand as? Integer else {
+      return .unexpectedObjectType
+    }
+    return push(Integer(value: -int.value))
+  }
+
+  private func executeComparison(_ op: OpCode) -> VirtualMachineError? {
+    let right = pop()
+    let left = pop()
+    if let leftInt = left as? Integer, let rightInt = right as? Integer {
+      return executeIntegerComparison(op, leftInt, rightInt)
+    }
+    if let leftBool = left as? Boolean, let rightBool = right as? Boolean {
+      switch op {
+        case .equal:
+          return push(Boolean.from(leftBool === rightBool))
+        case .notEqual:
+          return push(Boolean.from(leftBool !== rightBool))
+        default:
+          return .unexpectedBooleanOperator(op.rawValue)
+      }
+    }
+    return .unknownOperator(op.rawValue)
+  }
+
+  private func executeIntegerComparison(_ op: OpCode, _ left: Integer, _ right: Integer)
+    -> VirtualMachineError?
+  {
+    switch op {
+      case .equal:
+        return push(Boolean.from(left.value == right.value))
+      case .notEqual:
+        return push(Boolean.from(left.value != right.value))
+      case .greaterThan:
+        return push(Boolean.from(left.value > right.value))
+      default:
+        return .unknownIntegerOperator(op.rawValue)
+    }
   }
 
   private func executeBinaryOperation(_ op: OpCode) -> VirtualMachineError? {
@@ -100,7 +154,9 @@ class VirtualMachine {
 enum VirtualMachineError: Swift.Error {
   case stackOverflow
   case invalidOpCode(UInt8)
+  case unknownOperator(UInt8)
   case unknownIntegerOperator(UInt8)
   case unexpectedObjectType
+  case unexpectedBooleanOperator(UInt8)
   case unknown
 }
