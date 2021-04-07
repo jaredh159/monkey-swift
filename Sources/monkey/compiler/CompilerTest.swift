@@ -15,49 +15,53 @@ func testCompiler() {
         expectedInstructions: [
           make(.constant, [0]),
           make(.constant, [1]),
-          make(.add, []),
-          make(.pop, []),
+          make(.add),
+          make(.pop),
         ]),
       CompilerTestCase(
         input: "1; 2",
         expectedConstants: [1, 2],
         expectedInstructions: [
           make(.constant, [0]),
-          make(.pop, []),
+          make(.pop),
           make(.constant, [1]),
-          make(.pop, []),
+          make(.pop),
         ]),
-
       CompilerTestCase(
         input: "1 - 2",
         expectedConstants: [1, 2],
         expectedInstructions: [
           make(.constant, [0]),
           make(.constant, [1]),
-          make(.sub, []),
-          make(.pop, []),
+          make(.sub),
+          make(.pop),
         ]),
-
       CompilerTestCase(
         input: "1 * 2",
         expectedConstants: [1, 2],
         expectedInstructions: [
           make(.constant, [0]),
           make(.constant, [1]),
-          make(.mul, []),
-          make(.pop, []),
+          make(.mul),
+          make(.pop),
         ]),
-
       CompilerTestCase(
         input: "2 / 1",
         expectedConstants: [2, 1],
         expectedInstructions: [
           make(.constant, [0]),
           make(.constant, [1]),
-          make(.div, []),
-          make(.pop, []),
+          make(.div),
+          make(.pop),
         ]),
-
+      CompilerTestCase(
+        input: "-1",
+        expectedConstants: [1],
+        expectedInstructions: [
+          make(.constant, [0]),
+          make(.minus),
+          make(.pop),
+        ]),
     ]
     runCompilerTests(tests)
   }
@@ -73,6 +77,75 @@ func testCompiler() {
         input: "false",
         expectedConstants: [],
         expectedInstructions: [make(.false), make(.pop)]
+      ),
+      CompilerTestCase(
+        input: "1 > 2",
+        expectedConstants: [1, 2],
+        expectedInstructions: [
+          make(.constant, [0]),
+          make(.constant, [1]),
+          make(.greaterThan),
+          make(.pop),
+        ]
+      ),
+      CompilerTestCase(
+        input: "1 < 2",
+        expectedConstants: [2, 1],
+        expectedInstructions: [
+          make(.constant, [0]),
+          make(.constant, [1]),
+          make(.greaterThan),
+          make(.pop),
+        ]
+      ),
+      CompilerTestCase(
+        input: "1 != 2",
+        expectedConstants: [1, 2],
+        expectedInstructions: [
+          make(.constant, [0]),
+          make(.constant, [1]),
+          make(.notEqual),
+          make(.pop),
+        ]
+      ),
+      CompilerTestCase(
+        input: "1 == 2",
+        expectedConstants: [1, 2],
+        expectedInstructions: [
+          make(.constant, [0]),
+          make(.constant, [1]),
+          make(.equal),
+          make(.pop),
+        ]
+      ),
+      CompilerTestCase(
+        input: "true == false",
+        expectedConstants: [],
+        expectedInstructions: [
+          make(.true),
+          make(.false),
+          make(.equal),
+          make(.pop),
+        ]
+      ),
+      CompilerTestCase(
+        input: "true != false",
+        expectedConstants: [],
+        expectedInstructions: [
+          make(.true),
+          make(.false),
+          make(.notEqual),
+          make(.pop),
+        ]
+      ),
+      CompilerTestCase(
+        input: "!true",
+        expectedConstants: [],
+        expectedInstructions: [
+          make(.true),
+          make(.bang),
+          make(.pop),
+        ]
       ),
     ]
     runCompilerTests(tests)

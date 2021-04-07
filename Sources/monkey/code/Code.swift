@@ -31,6 +31,11 @@ enum OpCode: UInt8 {
   case sub
   case mul
   case div
+  case equal
+  case notEqual
+  case greaterThan
+  case minus
+  case bang
   case `true`
   case `false`
 
@@ -52,6 +57,16 @@ enum OpCode: UInt8 {
         return Definition(name: "true", operandWidths: [])
       case .false:
         return Definition(name: "false", operandWidths: [])
+      case .equal:
+        return Definition(name: "equal", operandWidths: [])
+      case .notEqual:
+        return Definition(name: "notEqual", operandWidths: [])
+      case .greaterThan:
+        return Definition(name: "greaterThan", operandWidths: [])
+      case .minus:
+        return Definition(name: "minus", operandWidths: [])
+      case .bang:
+        return Definition(name: "bang", operandWidths: [])
     }
   }
 
