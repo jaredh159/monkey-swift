@@ -26,7 +26,12 @@ func testCode() {
       make(.constant, [65535]),
     ]
 
-    let expected = "[0000 OpAdd, 0001 OpConstant 2, 0004 OpConstant 65535]"
+    let expected = """
+      0000 OpAdd
+      0001 OpConstant 2
+      0004 OpConstant 65535
+
+      """
 
     let concatted: Instructions = instructions.flatMap { $0 }
     expect(concatted.string).toEqual(expected)

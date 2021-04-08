@@ -151,6 +151,51 @@ func testCompiler() {
     runCompilerTests(tests)
   }
 
+  test("conditionals") {
+    runCompilerTests([
+      CompilerTestCase(
+        input: "if (true) { 10 }; 3333;",
+        expectedConstants: [10, 3333],
+        expectedInstructions: [
+          // 0000
+          make(.true),
+          // 0001
+          make(.jumpNotTruthy, [7]),
+          // 0004
+          make(.constant, [0]),
+          // 0007
+          make(.pop),
+          // 0008
+          make(.constant, [1]),
+          // 0011
+          make(.pop),
+        ]
+      ),
+      CompilerTestCase(
+        input: "if (true) { 10 } else { 20 }; 3333;",
+        expectedConstants: [10, 20, 3333],
+        expectedInstructions: [
+          // 0000
+          make(.true),
+          // 0001
+          make(.jumpNotTruthy, [10]),
+          // 0004
+          make(.constant, [0]),
+          // 0007
+          make(.jump, [13]),
+          // 0010
+          make(.constant, [1]),
+          // 0013
+          make(.pop),
+          // 0014
+          make(.constant, [2]),
+          // 0017
+          make(.pop),
+        ]
+      ),
+    ])
+  }
+
   Test.report()
 }
 
@@ -183,10 +228,19 @@ func parse(_ input: String) -> ProgramProtocol {
 func testInstructions(_ expected: [Instructions], _ actual: Instructions) -> String? {
   let concatted = concatInstructions(expected)
   guard concatted.count == actual.count else {
-    return "wrong instruction length. want=\(concatted.string), got=\(actual.string)"
+    return
+      "wrong instruction length.\n~~EXPECTED~~\n\(concatted.string)~~ACTUAL~~\n\(actual.string)"
   }
+  var counter = 0
   for (expectedByte, actualByte) in zip(concatted, actual) {
-    expect(expectedByte).toEqual(actualByte)
+    if expectedByte != actualByte {
+      Test.pushFail(
+        "wrong instruction at byte position \(counter) want=\(expectedByte), got=\(actualByte),\n~~~EXPECTED~~~\n\(concatted.string)~~~ACTUAL~~~\n\(actual.string)"
+      )
+    } else {
+      Test.pushPass()
+    }
+    counter += 1
   }
   return nil
 }

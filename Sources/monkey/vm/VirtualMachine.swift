@@ -53,6 +53,8 @@ class VirtualMachine {
           if let err = executeMinusOperator() {
             return err
           }
+        default:
+          fatalError("not implemented \(op)")
       }
       ip += 1
     }
