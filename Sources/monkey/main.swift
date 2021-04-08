@@ -39,7 +39,9 @@ if CommandLine.arguments.count == 2 {
       testCode()
     case "vm", "v":
       testVm()
-    case "compile", "compiler", "c":
+    case "compile", "compiler":
+      testCompiler()
+    case "c":
       testCode()
       testCompiler()
       testVm()

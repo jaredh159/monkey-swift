@@ -15,7 +15,7 @@ extension Array where Element == UInt8 {
       instructions.append("\(String(format: "%04d", i)) \(fmtInstructions(def, operands))")
       i += 1 + read
     }
-    return "[\(instructions.joined(separator: ", "))]"
+    return "\(instructions.joined(separator: "\n"))\n"
   }
 }
 
@@ -36,11 +36,17 @@ enum OpCode: UInt8 {
   case greaterThan
   case minus
   case bang
+  case jumpNotTruthy
+  case jump
   case `true`
   case `false`
 
   func lookup() -> Definition {
     switch self {
+      case .jumpNotTruthy:
+        return Definition(name: "jumpNotTruthy", operandWidths: [2])
+      case .jump:
+        return Definition(name: "jump", operandWidths: [2])
       case .constant:
         return Definition(name: "constant", operandWidths: [2])
       case .add:
@@ -122,12 +128,13 @@ func fmtInstructions(_ def: Definition, _ operands: [Int]) -> String {
   guard operandCount == operands.count else {
     return "ERROR: operand len \(operands.count) does not match defined \(operandCount)\n"
   }
+  let name = "Op\(def.name.prefix(1).capitalized)\(def.name.dropFirst())"
   switch operandCount {
     case 0:
-      return "Op\(def.name.capitalized)"
+      return name
     case 1:
-      return "Op\(def.name.capitalized) \(operands[0])"
+      return "\(name) \(operands[0])"
     default:
-      return "ERROR: unhandled operandCount for \(def.name)\n"
+      return "ERROR: unhandled operandCount for \(name)\n"
   }
 }
