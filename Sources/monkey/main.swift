@@ -17,7 +17,7 @@ if CommandLine.arguments[1] != "test" {
   fatalError("Incorrect usage")
 }
 
-if CommandLine.arguments.count == 2 {
+if CommandLine.arguments.count == 2 || CommandLine.arguments[2] == "all" {
   testEval()
   testLexer()
   testParser()

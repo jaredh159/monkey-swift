@@ -46,6 +46,8 @@ class VirtualMachine {
           switch operand {
             case Boolean.false:
               push(Boolean.true)
+            case Null:
+              push(Boolean.true)
             default:
               push(Boolean.false)
           }
@@ -53,8 +55,20 @@ class VirtualMachine {
           if let err = executeMinusOperator() {
             return err
           }
-        default:
-          fatalError("not implemented \(op)")
+        case .jump:
+          let pos = Int(readUInt16(Array(instructions[(ip + 1)...])))
+          ip = pos - 1
+        case .jumpNotTruthy:
+          let pos = Int(readUInt16(Array(instructions[(ip + 1)...])))
+          ip += 2
+          let condition = pop()
+          if !isTruthy(condition) {
+            ip = pos - 1
+          }
+        case .null:
+          if let err = push(Null) {
+            return err
+          }
       }
       ip += 1
     }
@@ -132,7 +146,7 @@ class VirtualMachine {
   }
 
   @discardableResult
-  func push(_ obj: Object) -> VirtualMachineError? {
+  private func push(_ obj: Object) -> VirtualMachineError? {
     guard sp < STACK_SIZE else {
       return .stackOverflow
     }
@@ -146,10 +160,21 @@ class VirtualMachine {
   }
 
   @discardableResult
-  func pop() -> Object {
+  private func pop() -> Object {
     let object = stack[sp - 1]
     sp -= 1
     return object
+  }
+
+  private func isTruthy(_ object: Object) -> Bool {
+    switch object {
+      case let bool as Boolean:
+        return bool.value
+      case Null:
+        return false
+      default:
+        return true
+    }
   }
 }
 

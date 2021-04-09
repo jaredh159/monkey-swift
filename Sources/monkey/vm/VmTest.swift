@@ -17,10 +17,10 @@ func testVm() {
       ("5 * 2 + 10", 20),
       ("5 + 2 * 10", 25),
       ("5 * (2 + 10)", 60),
-      // ("-5", -5),
-      // ("-10", -10),
-      // ("-50 + 100 + -50", 0),
-      // ("(5 + 10 * 2 + 15 / 3) * 2 + -10", 50),
+      ("-5", -5),
+      ("-10", -10),
+      ("-50 + 100 + -50", 0),
+      ("(5 + 10 * 2 + 15 / 3) * 2 + -10", 50),
     ]
     runVmTests(cases)
   }
@@ -52,8 +52,24 @@ func testVm() {
       ("!!true", true),
       ("!!false", false),
       ("!!5", true),
+      ("!(if (false) { 5; })", true),
     ]
     runVmTests(cases)
+  }
+
+  test("conditionals") {
+    runVmTests([
+      ("if (true) { 10 }", 10),
+      ("if (true) { 10 } else { 20 }", 10),
+      ("if (false) { 10 } else { 20 } ", 20),
+      ("if (1) { 10 }", 10),
+      ("if (1 < 2) { 10 }", 10),
+      ("if (1 < 2) { 10 } else { 20 }", 10),
+      ("if (1 > 2) { 10 } else { 20 }", 20),
+      ("if (1 > 2) { 10 }", Null),
+      ("if (false) { 10 }", Null),
+      ("if ((if (false) { 10 })) { 10 } else { 20 }", 20),
+    ])
   }
 
   Test.report()
@@ -77,6 +93,8 @@ func runVmTests(_ tests: [VmTestCase]) {
         expect(vm.lastPoppedStackElem).toBeObject(int: int)
       case let bool as Bool:
         expect(vm.lastPoppedStackElem).toBeObject(bool: bool)
+      case _ as NullObject:
+        expect(vm.lastPoppedStackElem).toBeNull()
       default:
         Test.pushFail("unhandled vm test type: \(type(of: expected))")
     }

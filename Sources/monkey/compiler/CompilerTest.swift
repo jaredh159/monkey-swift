@@ -160,14 +160,18 @@ func testCompiler() {
           // 0000
           make(.true),
           // 0001
-          make(.jumpNotTruthy, [7]),
+          make(.jumpNotTruthy, [10]),
           // 0004
           make(.constant, [0]),
           // 0007
-          make(.pop),
-          // 0008
-          make(.constant, [1]),
+          make(.jump, [11]),
+          // 0010
+          make(.null),
           // 0011
+          make(.pop),
+          // 0012
+          make(.constant, [1]),
+          // 0015
           make(.pop),
         ]
       ),
