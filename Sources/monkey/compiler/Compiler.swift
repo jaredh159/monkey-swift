@@ -107,30 +107,33 @@ class Compiler {
         if let err = compile(ifExpr.condition) {
           return err
         }
+
         let jumpNotTruthyPos = emit(opcode: .jumpNotTruthy, operands: [PLACEHOLDER])
         if let err = compile(ifExpr.consequence) {
           return err
         }
+
         if lastInstruction?.opcode == .pop {
           removeLastPop()
         }
 
+        let jumpPos = emit(opcode: .jump, operands: [PLACEHOLDER])
+        let afterConsequencePos = instructions.count
+        changeOperand(atOpCodePosition: jumpNotTruthyPos, with: afterConsequencePos)
+
         if let alternative = ifExpr.alternative {
-          let jumpPos = emit(opcode: .jump, operands: [PLACEHOLDER])
-          let afterConsequencePos = instructions.count
-          changeOperand(atOpCodePosition: jumpNotTruthyPos, with: afterConsequencePos)
           if let err = compile(alternative) {
             return err
           }
           if lastInstruction?.opcode == .pop {
             removeLastPop()
           }
-          let afterAlternativePos = instructions.count
-          changeOperand(atOpCodePosition: jumpPos, with: afterAlternativePos)
         } else {
-          let afterConsequencePos = instructions.count
-          changeOperand(atOpCodePosition: jumpNotTruthyPos, with: afterConsequencePos)
+          emit(opcode: .null)
         }
+
+        let afterAlternativePos = instructions.count
+        changeOperand(atOpCodePosition: jumpPos, with: afterAlternativePos)
 
       default:
         fatalError("Unhandled node type: \(type(of: node))")

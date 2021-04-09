@@ -38,6 +38,7 @@ enum OpCode: UInt8 {
   case bang
   case jumpNotTruthy
   case jump
+  case null
   case `true`
   case `false`
 
@@ -73,6 +74,8 @@ enum OpCode: UInt8 {
         return Definition(name: "minus", operandWidths: [])
       case .bang:
         return Definition(name: "bang", operandWidths: [])
+      case .null:
+        return Definition(name: "null", operandWidths: [])
     }
   }
 
