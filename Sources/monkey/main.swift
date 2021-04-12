@@ -25,6 +25,7 @@ if CommandLine.arguments.count == 2 || CommandLine.arguments[2] == "all" {
   testCode()
   testCompiler()
   testVm()
+  testSymbolTable()
 } else {
   switch CommandLine.arguments[2] {
     case "lexer", "l":
@@ -35,6 +36,8 @@ if CommandLine.arguments.count == 2 || CommandLine.arguments[2] == "all" {
       testAst()
     case "eval", "evaluator", "e":
       testEval()
+    case "symbol", "s":
+      testSymbolTable()
     case "code":
       testCode()
     case "vm", "v":
@@ -45,6 +48,7 @@ if CommandLine.arguments.count == 2 || CommandLine.arguments[2] == "all" {
       testCode()
       testCompiler()
       testVm()
+      testSymbolTable()
     default:
       fatalError("unknown test target")
   }

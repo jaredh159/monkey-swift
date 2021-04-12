@@ -200,6 +200,53 @@ func testCompiler() {
     ])
   }
 
+  test("global let statements") {
+    runCompilerTests([
+      CompilerTestCase(
+        input: """
+          let one = 1;
+          let two = 2;
+          """,
+        expectedConstants: [1, 2],
+        expectedInstructions: [
+          make(.constant, [0]),
+          make(.setGlobal, [0]),
+          make(.constant, [1]),
+          make(.setGlobal, [1]),
+        ]
+      ),
+      CompilerTestCase(
+        input: """
+          let one = 1;
+          one;
+          """,
+        expectedConstants: [1],
+        expectedInstructions: [
+          make(.constant, [0]),
+          make(.setGlobal, [0]),
+          make(.getGlobal, [0]),
+          make(.pop),
+        ]
+      ),
+      CompilerTestCase(
+        input: """
+          let one = 1;
+          let two = one;
+          two
+          """,
+        expectedConstants: [1],
+        expectedInstructions: [
+          make(.constant, [0]),
+          make(.setGlobal, [0]),
+          make(.getGlobal, [0]),
+          make(.setGlobal, [1]),
+          make(.getGlobal, [1]),
+          make(.pop),
+        ]
+      ),
+    ])
+  }
+
   Test.report()
 }
 

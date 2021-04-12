@@ -1,7 +1,10 @@
+let GLOBALS_SIZE = 65536
+
 class VirtualMachine {
   var constants: [Object]
   var instructions: Instructions
   var stack: [Object] = []
+  var globals: [Object?]
   var sp: Int = 0
   private let STACK_SIZE = 2048
 
@@ -12,6 +15,17 @@ class VirtualMachine {
   init(_ bytecode: Bytecode) {
     self.constants = bytecode.constants
     self.instructions = bytecode.instructions
+    self.globals = [Object?](repeating: nil, count: GLOBALS_SIZE)
+  }
+
+  init(_ bytecode: Bytecode, globals: [Object?]) {
+    self.constants = bytecode.constants
+    self.instructions = bytecode.instructions
+    self.globals = globals
+  }
+
+  private func intFromUInt16Operand(_ ip: Int) -> Int {
+    return Int(readUInt16(Array(instructions[(ip + 1)...])))
   }
 
   func run() -> VirtualMachineError? {
@@ -22,7 +36,7 @@ class VirtualMachine {
       }
       switch op {
         case .constant:
-          let constIndex = Int(readUInt16(Array(instructions[(ip + 1)...])))
+          let constIndex = intFromUInt16Operand(ip)
           ip += 2
           if let err = push(constants[constIndex]) {
             return err
@@ -56,10 +70,10 @@ class VirtualMachine {
             return err
           }
         case .jump:
-          let pos = Int(readUInt16(Array(instructions[(ip + 1)...])))
+          let pos = intFromUInt16Operand(ip)
           ip = pos - 1
         case .jumpNotTruthy:
-          let pos = Int(readUInt16(Array(instructions[(ip + 1)...])))
+          let pos = intFromUInt16Operand(ip)
           ip += 2
           let condition = pop()
           if !isTruthy(condition) {
@@ -67,6 +81,16 @@ class VirtualMachine {
           }
         case .null:
           if let err = push(Null) {
+            return err
+          }
+        case .setGlobal:
+          let globalIndex = intFromUInt16Operand(ip)
+          ip += 2
+          globals[globalIndex] = pop()
+        case .getGlobal:
+          let globalIndex = intFromUInt16Operand(ip)
+          ip += 2
+          if let err = push(globals[globalIndex]!) {
             return err
           }
       }

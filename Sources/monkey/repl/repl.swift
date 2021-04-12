@@ -8,6 +8,11 @@ struct Repl {
 
   static func start() {
     prompt()
+    let constants: [Object] = []
+    let symbolTable = SymbolTable()
+    let compiler = Compiler(symbolTable: symbolTable, constants: constants)
+    let globals = [Object?](repeating: nil, count: GLOBALS_SIZE)
+
     while let line = readLine() {
       let lexer = Lexer(line)
       let parser = Parser(lexer)
@@ -18,13 +23,12 @@ struct Repl {
         continue
       }
 
-      let compiler = Compiler()
       if let err = compiler.compile(program) {
         print("Whoops! Compilation failed\n \(err)\n")
         continue
       }
 
-      let machine = VirtualMachine(compiler.bytecode())
+      let machine = VirtualMachine(compiler.bytecode(), globals: globals)
       if let err = machine.run() {
         print("Whoops! Executing bytecode failed\n \(err)\n")
         continue
