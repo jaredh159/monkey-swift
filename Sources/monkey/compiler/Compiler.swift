@@ -160,6 +160,10 @@ class Compiler {
         }
         emit(opcode: .getGlobal, operands: [symbol.index])
 
+      case let stringLit as StringLiteral:
+        let strObj = StringObject(value: stringLit.value)
+        emit(opcode: .constant, operands: [addConstant(strObj)])
+
       default:
         fatalError("Unhandled node type: \(type(of: node))")
     }
