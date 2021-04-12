@@ -147,7 +147,21 @@ class VirtualMachine {
     if let leftInt = left as? Integer, let rightInt = right as? Integer {
       return executeBinaryIntegerOperation(op, leftInt, rightInt)
     }
+    if let leftStr = left as? StringObject, let rightStr = right as? StringObject {
+      return executeBinaryStringOperation(op, leftStr, rightStr)
+    }
     return .unexpectedObjectType
+  }
+
+  private func executeBinaryStringOperation(
+    _ op: OpCode, _ left: StringObject, _ right: StringObject
+  )
+    -> VirtualMachineError?
+  {
+    guard op == .add else {
+      return .unknownStringOperator(op.rawValue)
+    }
+    return push(StringObject(value: left.value + right.value))
   }
 
   private func executeBinaryIntegerOperation(_ op: OpCode, _ left: Integer, _ right: Integer)
@@ -209,5 +223,6 @@ enum VirtualMachineError: Swift.Error {
   case unknownIntegerOperator(UInt8)
   case unexpectedObjectType
   case unexpectedBooleanOperator(UInt8)
+  case unknownStringOperator(UInt8)
   case unknown
 }

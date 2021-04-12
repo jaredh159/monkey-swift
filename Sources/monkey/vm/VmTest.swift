@@ -80,6 +80,14 @@ func testVm() {
     ])
   }
 
+  test("string expressions") {
+    runVmTests([
+      (#""monkey""#, "monkey"),
+      (#""mon" + "key""#, "monkey"),
+      (#""mon" + "key" + "banana""#, "monkeybanana"),
+    ])
+  }
+
   Test.report()
 }
 
@@ -103,6 +111,8 @@ func runVmTests(_ tests: [VmTestCase]) {
         expect(vm.lastPoppedStackElem).toBeObject(bool: bool)
       case _ as NullObject:
         expect(vm.lastPoppedStackElem).toBeNull()
+      case let string as String:
+        expect(vm.lastPoppedStackElem).toBeObject(string: string)
       default:
         Test.pushFail("unhandled vm test type: \(type(of: expected))")
     }

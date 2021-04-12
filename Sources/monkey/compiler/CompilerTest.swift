@@ -247,6 +247,29 @@ func testCompiler() {
     ])
   }
 
+  test("string expressions") {
+    runCompilerTests([
+      CompilerTestCase(
+        input: "\"monkey\"",
+        expectedConstants: ["monkey"],
+        expectedInstructions: [
+          make(.constant, [0]),
+          make(.pop),
+        ]
+      ),
+      CompilerTestCase(
+        input: "\"mon\" + \"key\"",
+        expectedConstants: ["mon", "key"],
+        expectedInstructions: [
+          make(.constant, [0]),
+          make(.constant, [1]),
+          make(.add),
+          make(.pop),
+        ]
+      ),
+    ])
+  }
+
   Test.report()
 }
 
@@ -305,6 +328,8 @@ func testConstants(_ expectedConstants: [Any], _ actualConstants: [Object]) -> S
     switch expected {
       case let int as Int:
         expect(actual).toBeObject(int: int)
+      case let string as String:
+        expect(actual).toBeObject(string: string)
       default:
         return "unexpected expected type \(type(of: expected))"
     }
