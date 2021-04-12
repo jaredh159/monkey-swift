@@ -39,11 +39,17 @@ enum OpCode: UInt8 {
   case jumpNotTruthy
   case jump
   case null
+  case setGlobal
+  case getGlobal
   case `true`
   case `false`
 
   func lookup() -> Definition {
     switch self {
+      case .setGlobal:
+        return Definition(name: "setGlobal", operandWidths: [2])
+      case .getGlobal:
+        return Definition(name: "getGlobal", operandWidths: [2])
       case .jumpNotTruthy:
         return Definition(name: "jumpNotTruthy", operandWidths: [2])
       case .jump:

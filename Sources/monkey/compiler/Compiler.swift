@@ -7,17 +7,29 @@ enum CompilerError: Swift.Error {
   case unknown
   case unknownInfixOperator(String)
   case unknownPrefixOperator(String)
+  case undefinedVariable(String)
 }
 
 class Compiler {
+  private var symbolTable: SymbolTable
+  private var constants: [Object]
   private var instructions: Instructions = []
-  private var constants: [Object] = []
   private var lastInstruction: EmittedInstruction?
   private var previousInstruction: EmittedInstruction?
 
   struct EmittedInstruction {
     var opcode: OpCode
     var position: Int
+  }
+
+  init() {
+    self.symbolTable = SymbolTable()
+    self.constants = []
+  }
+
+  init(symbolTable: SymbolTable, constants: [Object]) {
+    self.symbolTable = symbolTable
+    self.constants = constants
   }
 
   func bytecode() -> Bytecode {
@@ -103,6 +115,13 @@ class Compiler {
             return .unknownPrefixOperator(prefixExpr.operator)
         }
 
+      case let letStmt as LetStatement:
+        if let err = compile(letStmt.value) {
+          return err
+        }
+        let symbol = symbolTable.define(name: letStmt.name.value)
+        emit(opcode: .setGlobal, operands: [symbol.index])
+
       case let ifExpr as IfExpression:
         if let err = compile(ifExpr.condition) {
           return err
@@ -134,6 +153,12 @@ class Compiler {
 
         let afterAlternativePos = instructions.count
         changeOperand(atOpCodePosition: jumpPos, with: afterAlternativePos)
+
+      case let identifier as Identifier:
+        guard let symbol = symbolTable.resolve(name: identifier.value) else {
+          return .undefinedVariable(identifier.value)
+        }
+        emit(opcode: .getGlobal, operands: [symbol.index])
 
       default:
         fatalError("Unhandled node type: \(type(of: node))")

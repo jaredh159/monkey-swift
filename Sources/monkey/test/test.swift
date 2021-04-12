@@ -130,6 +130,20 @@ struct Expectation {
   }
 
   @discardableResult
+  func toEqual(_ expected: Symbol) -> Bool {
+    guard let actual = actual as? Symbol else {
+      Test.pushFail("`actual` val was not Symbol, got type=\(self.T)")
+      return false
+    }
+    if actual != expected {
+      Test.pushFail("expected (Symbol) \"\(expected)\", got \"\(actual)\"")
+      return false
+    }
+    Test.pushPass()
+    return true
+  }
+
+  @discardableResult
   func toBe<T>(_ expectedType: T.Type) -> T? {
     guard let knownType = actual as? T else {
       Test.pushFail(
