@@ -93,10 +93,26 @@ class VirtualMachine {
           if let err = push(globals[globalIndex]!) {
             return err
           }
+        case .array:
+          let numElements = intFromUInt16Operand(ip)
+          ip += 2
+          let array = buildArray(startIndex: sp - numElements, endIndex: sp)
+          sp = sp - numElements
+          if let err = push(array) {
+            return err
+          }
       }
       ip += 1
     }
     return nil
+  }
+
+  private func buildArray(startIndex: Int, endIndex: Int) -> ArrayObject {
+    var elements: [Object] = []
+    for i in startIndex..<endIndex {
+      elements.append(stack[i])
+    }
+    return ArrayObject(elements: elements)
   }
 
   private func executeMinusOperator() -> VirtualMachineError? {

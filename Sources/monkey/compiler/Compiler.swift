@@ -164,6 +164,14 @@ class Compiler {
         let strObj = StringObject(value: stringLit.value)
         emit(opcode: .constant, operands: [addConstant(strObj)])
 
+      case let arrayLit as ArrayLiteral:
+        for element in arrayLit.elements {
+          if let err = compile(element) {
+            return err
+          }
+        }
+        emit(opcode: .array, operands: [arrayLit.elements.count])
+
       default:
         fatalError("Unhandled node type: \(type(of: node))")
     }
