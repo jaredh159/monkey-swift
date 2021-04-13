@@ -41,11 +41,14 @@ enum OpCode: UInt8 {
   case null
   case setGlobal
   case getGlobal
+  case array
   case `true`
   case `false`
 
   func lookup() -> Definition {
     switch self {
+      case .array:
+        return Definition(name: "array", operandWidths: [2])
       case .setGlobal:
         return Definition(name: "setGlobal", operandWidths: [2])
       case .getGlobal:

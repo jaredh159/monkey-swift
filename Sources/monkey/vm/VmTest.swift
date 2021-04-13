@@ -88,6 +88,14 @@ func testVm() {
     ])
   }
 
+  test("array literals") {
+    runVmTests([
+      ("[]", [] as [Int]),
+      ("[1, 2, 3]", [1, 2, 3]),
+      ("[1 + 2, 3 * 4, 5 + 6]", [3, 12, 11]),
+    ])
+  }
+
   Test.report()
 }
 
@@ -113,6 +121,18 @@ func runVmTests(_ tests: [VmTestCase]) {
         expect(vm.lastPoppedStackElem).toBeNull()
       case let string as String:
         expect(vm.lastPoppedStackElem).toBeObject(string: string)
+      case let intArray as [Int]:
+        let last = vm.lastPoppedStackElem
+        guard let arrayObj = last as? ArrayObject else {
+          Test.pushFail("object not Array: \(String(describing: last)) \(type(of: last))")
+          return
+        }
+        guard expect(intArray.count).toEqual(arrayObj.elements.count) else {
+          return
+        }
+        for (actual, expected) in zip(arrayObj.elements, intArray) {
+          expect(actual).toBeObject(int: expected)
+        }
       default:
         Test.pushFail("unhandled vm test type: \(type(of: expected))")
     }

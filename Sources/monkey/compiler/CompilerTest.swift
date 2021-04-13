@@ -270,6 +270,47 @@ func testCompiler() {
     ])
   }
 
+  test("array literals") {
+    runCompilerTests([
+      CompilerTestCase(
+        input: "[]",
+        expectedConstants: [],
+        expectedInstructions: [
+          make(.array, [0]),
+          make(.pop),
+        ]
+      ),
+      CompilerTestCase(
+        input: "[1, 2, 3]",
+        expectedConstants: [1, 2, 3],
+        expectedInstructions: [
+          make(.constant, [0]),
+          make(.constant, [1]),
+          make(.constant, [2]),
+          make(.array, [3]),
+          make(.pop),
+        ]
+      ),
+      CompilerTestCase(
+        input: "[1 + 2, 3 - 4, 5 * 6]",
+        expectedConstants: [1, 2, 3, 4, 5, 6],
+        expectedInstructions: [
+          make(.constant, [0]),
+          make(.constant, [1]),
+          make(.add),
+          make(.constant, [2]),
+          make(.constant, [3]),
+          make(.sub),
+          make(.constant, [4]),
+          make(.constant, [5]),
+          make(.mul),
+          make(.array, [3]),
+          make(.pop),
+        ]
+      ),
+    ])
+  }
+
   Test.report()
 }
 
