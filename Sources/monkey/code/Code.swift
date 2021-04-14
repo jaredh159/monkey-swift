@@ -42,11 +42,15 @@ enum OpCode: UInt8 {
   case setGlobal
   case getGlobal
   case array
+  case hash
+  case index
   case `true`
   case `false`
 
   func lookup() -> Definition {
     switch self {
+      case .hash:
+        return Definition(name: "hash", operandWidths: [2])
       case .array:
         return Definition(name: "array", operandWidths: [2])
       case .setGlobal:
@@ -59,6 +63,8 @@ enum OpCode: UInt8 {
         return Definition(name: "jump", operandWidths: [2])
       case .constant:
         return Definition(name: "constant", operandWidths: [2])
+      case .index:
+        return Definition(name: "index", operandWidths: [])
       case .add:
         return Definition(name: "add", operandWidths: [])
       case .pop:

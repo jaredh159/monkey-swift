@@ -101,10 +101,68 @@ class VirtualMachine {
           if let err = push(array) {
             return err
           }
+        case .hash:
+          let numElements = intFromUInt16Operand(ip)
+          ip += 2
+          let (hash, err) = buildHash(startIndex: sp - numElements, endIndex: sp)
+          if let err = err {
+            return err
+          }
+          sp = sp - numElements
+          if let err = push(hash!) {
+            return err
+          }
+        case .index:
+          let index = pop()
+          let left = pop()
+          if let err = executeIndexExpression(left: left, index: index) {
+            return err
+          }
       }
       ip += 1
     }
     return nil
+  }
+
+  private func executeIndexExpression(left: Object, index: Object) -> VirtualMachineError? {
+    switch (left, index) {
+      case let (array as ArrayObject, int as Integer):
+        return executeArrayIndex(array, int)
+      case let (hash as Hash, _):
+        return executeHashIndex(hash, index)
+      default:
+        return .indexOperatorUnsupported(left.type.description)
+    }
+  }
+
+  private func executeArrayIndex(_ array: ArrayObject, _ int: Integer) -> VirtualMachineError? {
+    guard array.elements.indices.contains(int.value) else {
+      return push(Null)
+    }
+    return push(array.elements[int.value])
+  }
+
+  private func executeHashIndex(_ hash: Hash, _ index: Object) -> VirtualMachineError? {
+    guard let hashKey = HashKey(index) else {
+      return .unusableHashKey(index.type.description)
+    }
+    guard let pair = hash.pairs[hashKey] else {
+      return push(Null)
+    }
+    return push(pair.value)
+  }
+
+  private func buildHash(startIndex: Int, endIndex: Int) -> (Hash?, VirtualMachineError?) {
+    var pairs: [HashKey: HashPair] = [:]
+    for i in stride(from: startIndex, to: endIndex, by: 2) {
+      let key = stack[i]
+      let value = stack[i + 1]
+      guard let hashKey = HashKey(key) else {
+        return (nil, .unusableHashKey(key.type.description))
+      }
+      pairs[hashKey] = HashPair(key: key, value: value)
+    }
+    return (Hash(pairs: pairs), nil)
   }
 
   private func buildArray(startIndex: Int, endIndex: Int) -> ArrayObject {
@@ -126,20 +184,18 @@ class VirtualMachine {
   private func executeComparison(_ op: OpCode) -> VirtualMachineError? {
     let right = pop()
     let left = pop()
-    if let leftInt = left as? Integer, let rightInt = right as? Integer {
-      return executeIntegerComparison(op, leftInt, rightInt)
+    switch (left, right, op) {
+      case let (leftInt as Integer, rightInt as Integer, _):
+        return executeIntegerComparison(op, leftInt, rightInt)
+      case let (leftBool as Boolean, rightBool as Boolean, .equal):
+        return push(Boolean.from(leftBool === rightBool))
+      case let (leftBool as Boolean, rightBool as Boolean, .notEqual):
+        return push(Boolean.from(leftBool !== rightBool))
+      case (_ as Boolean, _ as Boolean, _):
+        return .unexpectedBooleanOperator(op.rawValue)
+      default:
+        return .unknownOperator(op.rawValue)
     }
-    if let leftBool = left as? Boolean, let rightBool = right as? Boolean {
-      switch op {
-        case .equal:
-          return push(Boolean.from(leftBool === rightBool))
-        case .notEqual:
-          return push(Boolean.from(leftBool !== rightBool))
-        default:
-          return .unexpectedBooleanOperator(op.rawValue)
-      }
-    }
-    return .unknownOperator(op.rawValue)
   }
 
   private func executeIntegerComparison(_ op: OpCode, _ left: Integer, _ right: Integer)
@@ -160,13 +216,14 @@ class VirtualMachine {
   private func executeBinaryOperation(_ op: OpCode) -> VirtualMachineError? {
     let right = pop()
     let left = pop()
-    if let leftInt = left as? Integer, let rightInt = right as? Integer {
-      return executeBinaryIntegerOperation(op, leftInt, rightInt)
+    switch (left, right) {
+      case let (leftInt as Integer, rightInt as Integer):
+        return executeBinaryIntegerOperation(op, leftInt, rightInt)
+      case let (leftStr as StringObject, rightStr as StringObject):
+        return executeBinaryStringOperation(op, leftStr, rightStr)
+      default:
+        return .unexpectedObjectType
     }
-    if let leftStr = left as? StringObject, let rightStr = right as? StringObject {
-      return executeBinaryStringOperation(op, leftStr, rightStr)
-    }
-    return .unexpectedObjectType
   }
 
   private func executeBinaryStringOperation(
@@ -240,5 +297,7 @@ enum VirtualMachineError: Swift.Error {
   case unexpectedObjectType
   case unexpectedBooleanOperator(UInt8)
   case unknownStringOperator(UInt8)
+  case unusableHashKey(String)
+  case indexOperatorUnsupported(String)
   case unknown
 }

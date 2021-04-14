@@ -172,6 +172,26 @@ class Compiler {
         }
         emit(opcode: .array, operands: [arrayLit.elements.count])
 
+      case let hashLit as HashLiteral:
+        for (key, value) in hashLit.pairs {
+          if let err = compile(key) {
+            return err
+          }
+          if let err = compile(value) {
+            return err
+          }
+        }
+        emit(opcode: .hash, operands: [hashLit.pairs.count * 2])
+
+      case let indexExpr as IndexExpression:
+        if let err = compile(indexExpr.left) {
+          return err
+        }
+        if let err = compile(indexExpr.index) {
+          return err
+        }
+        emit(opcode: .index)
+
       default:
         fatalError("Unhandled node type: \(type(of: node))")
     }

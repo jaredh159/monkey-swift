@@ -124,19 +124,19 @@ func testEval() {
       ),
       (
         "true + false;",
-        "unknown operator: BOOLEAN + BOOLEAN"
+        "unknown boolean operator: +"
       ),
       (
         "5; true + false; 5",
-        "unknown operator: BOOLEAN + BOOLEAN"
+        "unknown boolean operator: +"
       ),
       (
         "if (10 > 1) { true + false; }",
-        "unknown operator: BOOLEAN + BOOLEAN"
+        "unknown boolean operator: +"
       ),
       (
         "if (10 > 1) { if (10 > 1) { return true + false } return 1 }",
-        "unknown operator: BOOLEAN + BOOLEAN"
+        "unknown boolean operator: +"
       ),
       (
         "foobar",
@@ -144,7 +144,7 @@ func testEval() {
       ),
       (
         #""Hello" - "World""#,
-        "unknown operator: STRING - STRING"
+        "unknown string operator: -"
       ),
       (
         #"{"name": "Monkey"}[fn(x) { x }];"#,

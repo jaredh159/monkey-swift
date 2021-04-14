@@ -96,6 +96,43 @@ func testVm() {
     ])
   }
 
+  test("hash literals") {
+    let cases: [(String, [HashKey: Int])] = [
+      ("{}", [:]),
+      (
+        "{1: 2, 2: 3}",
+        [
+          HashKey(Integer(value: 1))!: 2,
+          HashKey(Integer(value: 2))!: 3,
+        ]
+      ),
+      (
+        "{1 + 1: 2 * 2, 3 + 3: 4 * 4}",
+        [
+          HashKey(Integer(value: 2))!: 4,
+          HashKey(Integer(value: 6))!: 16,
+        ]
+      ),
+    ]
+    runVmTests(cases)
+  }
+
+  test("index expressions") {
+    let cases: [VmTestCase] = [
+      ("[1, 2, 3][1]", 2),
+      ("[1, 2, 3][0 + 2]", 3),
+      ("[[1, 1, 1]][0][0]", 1),
+      ("[][0]", Null),
+      ("[1, 2, 3][99]", Null),
+      ("[1][-1]", Null),
+      ("{1: 1, 2: 2}[1]", 1),
+      ("{1: 1, 2: 2}[2]", 2),
+      ("{1: 1}[0]", Null),
+      ("{}[0]", Null),
+    ]
+    runVmTests(cases)
+  }
+
   Test.report()
 }
 
@@ -132,6 +169,18 @@ func runVmTests(_ tests: [VmTestCase]) {
         }
         for (actual, expected) in zip(arrayObj.elements, intArray) {
           expect(actual).toBeObject(int: expected)
+        }
+      case let hashMap as [HashKey: Int]:
+        let last = vm.lastPoppedStackElem
+        guard let hashObj = last as? Hash else {
+          Test.pushFail("object not Hash: \(String(describing: last)) \(type(of: last))")
+          return
+        }
+        guard expect(hashObj.pairs.count).toEqual(hashMap.count) else {
+          return
+        }
+        for (actualKey, actualVal) in hashObj.pairs {
+          expect(hashMap[actualKey]).toEqual((actualVal.value as! Integer).value)
         }
       default:
         Test.pushFail("unhandled vm test type: \(type(of: expected))")

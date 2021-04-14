@@ -311,6 +311,83 @@ func testCompiler() {
     ])
   }
 
+  test("hash literals") {
+    runCompilerTests([
+      CompilerTestCase(
+        input: "{}",
+        expectedConstants: [],
+        expectedInstructions: [
+          make(.hash, [0]),
+          make(.pop),
+        ]
+      ),
+      CompilerTestCase(
+        input: "{1: 2, 3: 4, 5: 6}",
+        expectedConstants: [1, 2, 3, 4, 5, 6],
+        expectedInstructions: [
+          make(.constant, [0]),
+          make(.constant, [1]),
+          make(.constant, [2]),
+          make(.constant, [3]),
+          make(.constant, [4]),
+          make(.constant, [5]),
+          make(.hash, [6]),
+          make(.pop),
+        ]
+      ),
+      CompilerTestCase(
+        input: "{1: 2 + 3, 4: 5 * 6}",
+        expectedConstants: [1, 2, 3, 4, 5, 6],
+        expectedInstructions: [
+          make(.constant, [0]),
+          make(.constant, [1]),
+          make(.constant, [2]),
+          make(.add),
+          make(.constant, [3]),
+          make(.constant, [4]),
+          make(.constant, [5]),
+          make(.mul),
+          make(.hash, [4]),
+          make(.pop),
+        ]
+      ),
+    ])
+  }
+
+  test("index expressions") {
+    runCompilerTests([
+      CompilerTestCase(
+        input: "[1, 2, 3][1 + 1]",
+        expectedConstants: [1, 2, 3, 1, 1],
+        expectedInstructions: [
+          make(.constant, [0]),
+          make(.constant, [1]),
+          make(.constant, [2]),
+          make(.array, [3]),
+          make(.constant, [3]),
+          make(.constant, [4]),
+          make(.add),
+          make(.index),
+          make(.pop),
+        ]
+      ),
+      CompilerTestCase(
+        input: "{1: 2}[2 - 1]",
+        expectedConstants: [1, 2, 2, 1],
+        expectedInstructions: [
+          make(.constant, [0]),
+          make(.constant, [1]),
+          make(.hash, [2]),
+          make(.constant, [2]),
+          make(.constant, [3]),
+          make(.sub),
+          make(.index),
+          make(.pop),
+        ]
+      ),
+    ])
+  }
+
   Test.report()
 }
 

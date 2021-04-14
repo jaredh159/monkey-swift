@@ -190,32 +190,26 @@ func evalPrefixExpression(op: String, rhs: Object?) -> Object {
   }
 }
 
-// there's probably a more swifty way to do this with one giant pattern-matching
-// switch statement, but i can't figure it out...
 func evalInfixExpression(operator op: String, lhs: Object?, rhs: Object?) -> Object {
-  if let lhs = lhs as? Integer, let rhs = rhs as? Integer {
-    return evalIntegerInfixExpression(op: op, lhs: lhs, rhs: rhs)
+  guard let lhs = lhs, let rhs = rhs else {
+    return Error("missing one side of infix expression")
   }
-
-  if let lhs = lhs as? Boolean, let rhs = rhs as? Boolean {
-    switch op {
-      case "!=":
-        return Boolean.from(lhs !== rhs)
-      case "==":
-        return Boolean.from(lhs === rhs)
-      default:
-        return Error("unknown operator: \(lhs.type) \(op) \(rhs.type)")
-    }
+  switch (lhs, rhs, op) {
+    case let (leftInt as Integer, rightInt as Integer, _):
+      return evalIntegerInfixExpression(op: op, lhs: leftInt, rhs: rightInt)
+    case let (leftBool as Boolean, rightBool as Boolean, "!="):
+      return Boolean.from(leftBool !== rightBool)
+    case let (leftBool as Boolean, rightBool as Boolean, "=="):
+      return Boolean.from(leftBool === rightBool)
+    case (_ as Boolean, _ as Boolean, _):
+      return Error("unknown boolean operator: \(op)")
+    case let (leftStr as StringObject, rightStr as StringObject, "+"):
+      return StringObject(value: leftStr.value + rightStr.value)
+    case (_ as StringObject, _ as StringObject, _):
+      return Error("unknown string operator: \(op)")
+    default:
+      return Error("type mismatch: \(lhs.type) \(op) \(rhs.type)")
   }
-
-  if let lhs = lhs as? StringObject, let rhs = rhs as? StringObject {
-    guard op == "+" else {
-      return Error("unknown operator: \(lhs.type) \(op) \(rhs.type)")
-    }
-    return StringObject(value: lhs.value + rhs.value)
-  }
-
-  return Error("type mismatch: \(lhs.type) \(op) \(rhs.type)")
 }
 
 func evalIntegerInfixExpression(op: String, lhs: Integer, rhs: Integer) -> Object {
