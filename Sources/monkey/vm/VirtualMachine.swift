@@ -118,6 +118,12 @@ class VirtualMachine {
           if let err = executeIndexExpression(left: left, index: index) {
             return err
           }
+        case .return:
+          fatalError("TODO .return")
+        case .returnValue:
+          fatalError("TODO .returnValue")
+        case .call:
+          fatalError("TODO .call")
       }
       ip += 1
     }
