@@ -388,6 +388,79 @@ func testCompiler() {
     ])
   }
 
+  test("functions") {
+    runCompilerTests([
+      CompilerTestCase(
+        input: "fn() { return 5 + 10 }",
+        expectedConstants: [
+          5,
+          10,
+          [
+            make(.constant, [0]),
+            make(.constant, [1]),
+            make(.add),
+            make(.returnValue),
+          ],
+        ],
+        expectedInstructions: [
+          make(.constant, [2]),
+          make(.pop),
+        ]
+      )
+    ])
+  }
+
+  test("compiler scopes") {
+    let compiler = Compiler()
+    guard compiler.scopeIndex == 0 else {
+      Test.pushFail("scopeIndex wrong. got=\(compiler.scopeIndex), want=0")
+      return
+    }
+
+    compiler.emit(opcode: .mul)
+    compiler.enterScope()
+    guard compiler.scopeIndex == 1 else {
+      Test.pushFail("scopeIndex wrong. got=\(compiler.scopeIndex), want=1")
+      return
+    }
+
+    compiler.emit(opcode: .sub)
+    guard compiler.instructions.count == 1 else {
+      Test.pushFail("instructions length wrong, got=\(compiler.instructions.count), want=1")
+      return
+    }
+
+    var last = compiler.lastInstruction
+    guard last.opcode == .sub else {
+      Test.pushFail("lastInstruction.opcode wrong. got=\(last.opcode), want=\(OpCode.sub)")
+      return
+    }
+
+    compiler.leaveScope()
+    guard compiler.scopeIndex == 0 else {
+      Test.pushFail("scopeIndex wrong. got=\(compiler.scopeIndex), want=0")
+      return
+    }
+
+    compiler.emit(opcode: .add)
+    guard compiler.instructions.count == 2 else {
+      Test.pushFail("instructions length wrong, got=\(compiler.instructions.count), want=2")
+      return
+    }
+
+    last = compiler.lastInstruction
+    guard last.opcode == .add else {
+      Test.pushFail("lastInstruction.opcode wrong. got=\(last.opcode), want=\(OpCode.add)")
+      return
+    }
+
+    let prev = compiler.previousInstruction
+    guard prev.opcode == .mul else {
+      Test.pushFail("lastInstruction.opcode wrong. got=\(last.opcode), want=\(OpCode.mul)")
+      return
+    }
+  }
+
   Test.report()
 }
 
@@ -442,12 +515,21 @@ func testConstants(_ expectedConstants: [Any], _ actualConstants: [Object]) -> S
     return
       "wrong number of constants, got=\(actualConstants.count), want=\(expectedConstants.count)"
   }
+  var index = -1
   for (expected, actual) in zip(expectedConstants, actualConstants) {
+    index += 1
     switch expected {
       case let int as Int:
         expect(actual).toBeObject(int: int)
       case let string as String:
         expect(actual).toBeObject(string: string)
+      case let instructions as [Instructions]:
+        guard let compiledFn = expect(actual).toBe(CompiledFunction.self) else {
+          return "constant \(index) is not a function"
+        }
+        if let err = testInstructions(instructions, compiledFn.instructions) {
+          return err
+        }
       default:
         return "unexpected expected type \(type(of: expected))"
     }

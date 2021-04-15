@@ -44,6 +44,9 @@ enum OpCode: UInt8 {
   case array
   case hash
   case index
+  case call
+  case returnValue
+  case `return`
   case `true`
   case `false`
 
@@ -63,6 +66,12 @@ enum OpCode: UInt8 {
         return Definition(name: "jump", operandWidths: [2])
       case .constant:
         return Definition(name: "constant", operandWidths: [2])
+      case .call:
+        return Definition(name: "call", operandWidths: [])
+      case .returnValue:
+        return Definition(name: "returnValue", operandWidths: [])
+      case .return:
+        return Definition(name: "return", operandWidths: [])
       case .index:
         return Definition(name: "index", operandWidths: [])
       case .add:

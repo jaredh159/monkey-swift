@@ -13,9 +13,36 @@ enum CompilerError: Swift.Error {
 class Compiler {
   private var symbolTable: SymbolTable
   private var constants: [Object]
-  private var instructions: Instructions = []
-  private var lastInstruction: EmittedInstruction?
-  private var previousInstruction: EmittedInstruction?
+  private(set) var scopes: [Scope] = [Scope()]
+  private(set) var scopeIndex = 0
+
+  var currentScope: Scope {
+    guard scopes.indices.contains(scopeIndex) else {
+      fatalError("FATAL ERROR: No scope at index \(scopeIndex)")
+    }
+    return scopes[scopeIndex]
+  }
+
+  private(set) var instructions: Instructions {
+    get { currentScope.instructions }
+    set { scopes[scopeIndex].instructions = newValue }
+  }
+
+  private(set) var lastInstruction: EmittedInstruction {
+    get { currentScope.lastInstruction }
+    set { scopes[scopeIndex].lastInstruction = newValue }
+  }
+
+  private(set) var previousInstruction: EmittedInstruction {
+    get { currentScope.previousInstruction }
+    set { scopes[scopeIndex].previousInstruction = newValue }
+  }
+
+  struct Scope {
+    var instructions: Instructions = []
+    var lastInstruction = EmittedInstruction(opcode: .null, position: -1)
+    var previousInstruction = EmittedInstruction(opcode: .null, position: -2)
+  }
 
   struct EmittedInstruction {
     var opcode: OpCode
@@ -132,7 +159,7 @@ class Compiler {
           return err
         }
 
-        if lastInstruction?.opcode == .pop {
+        if lastInstruction.opcode == .pop {
           removeLastPop()
         }
 
@@ -144,7 +171,7 @@ class Compiler {
           if let err = compile(alternative) {
             return err
           }
-          if lastInstruction?.opcode == .pop {
+          if lastInstruction.opcode == .pop {
             removeLastPop()
           }
         } else {
@@ -199,11 +226,24 @@ class Compiler {
   }
 
   @discardableResult
-  private func emit(opcode: OpCode, operands: [Int] = []) -> Int {
+  func emit(opcode: OpCode, operands: [Int] = []) -> Int {
     let ins = make(opcode, operands)
     let pos = addInstruction(ins)
     setLastInstruction(opcode, pos)
     return pos
+  }
+
+  func enterScope() {
+    scopes.append(Scope())
+    scopeIndex += 1
+  }
+
+  @discardableResult
+  func leaveScope() -> Instructions {
+    let scopeInstructions = instructions
+    _ = scopes.dropLast()
+    scopeIndex -= 1
+    return scopeInstructions
   }
 
   private func setLastInstruction(_ opcode: OpCode, _ pos: Int) {
@@ -213,7 +253,7 @@ class Compiler {
 
   private func addInstruction(_ ins: [UInt8]) -> Int {
     let posNewInstruction = instructions.count
-    instructions += ins
+    scopes[scopeIndex].instructions += ins
     return posNewInstruction
   }
 

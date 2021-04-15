@@ -5,6 +5,7 @@ enum ObjectType: String, CustomStringConvertible {
   case error
   case builtin
   case function
+  case compiledFunction
   case string
   case array
   case hash
@@ -110,6 +111,12 @@ struct Function: Object {
     let params = parameters.map { $0.string }.joined(separator: ", ")
     return "fn(\(params)) {\n\(body.string)\n}"
   }
+}
+
+struct CompiledFunction: Object {
+  var type = ObjectType.compiledFunction
+  var instructions: Instructions
+  var inspect: String { "CompileFunction" }
 }
 
 struct BuiltIn: Object {
