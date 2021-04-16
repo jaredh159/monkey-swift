@@ -406,6 +406,50 @@ func testCompiler() -> Bool {
           make(.constant, [2]),
           make(.pop),
         ]
+      ),
+      CompilerTestCase(
+        input: "fn() { 5 + 10 }",
+        expectedConstants: [
+          5,
+          10,
+          [
+            make(.constant, [0]),
+            make(.constant, [1]),
+            make(.add),
+            make(.returnValue),
+          ],
+        ],
+        expectedInstructions: [
+          make(.constant, [2]),
+          make(.pop),
+        ]
+      ),
+      CompilerTestCase(
+        input: "fn() { 1; 2 }",
+        expectedConstants: [
+          1,
+          3,
+          [
+            make(.constant, [0]),
+            make(.pop),
+            make(.constant, [1]),
+            make(.returnValue),
+          ],
+        ],
+        expectedInstructions: [
+          make(.constant, [2]),
+          make(.pop),
+        ]
+      ),
+    ])
+  }
+
+  test("functions without return value") {
+    runCompilerTests([
+      CompilerTestCase(
+        input: "fn() { }",
+        expectedConstants: [[make(.return)]],
+        expectedInstructions: [make(.constant, [0]), make(.pop)]
       )
     ])
   }
@@ -436,7 +480,7 @@ func testCompiler() -> Bool {
       return
     }
 
-    compiler.leaveScope()
+    _ = compiler.leaveScope()
     guard compiler.scopeIndex == 0 else {
       Test.pushFail("scopeIndex wrong. got=\(compiler.scopeIndex), want=0")
       return
