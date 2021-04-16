@@ -428,7 +428,7 @@ func testCompiler() -> Bool {
         input: "fn() { 1; 2 }",
         expectedConstants: [
           1,
-          3,
+          2,
           [
             make(.constant, [0]),
             make(.pop),
@@ -503,6 +503,46 @@ func testCompiler() -> Bool {
       Test.pushFail("lastInstruction.opcode wrong. got=\(last.opcode), want=\(OpCode.mul)")
       return
     }
+  }
+
+  test("function calls") {
+    runCompilerTests([
+      CompilerTestCase(
+        input: "fn() { 24 }();",
+        expectedConstants: [
+          24,
+          [
+            make(.constant, [0]),  // the literal 24
+            make(.returnValue),
+          ],
+        ],
+        expectedInstructions: [
+          make(.constant, [1]),  // the compiled function
+          make(.call),
+          make(.pop),
+        ]
+      ),
+      CompilerTestCase(
+        input: """
+          let noArg = fn() { 24 };
+          noArg();
+          """,
+        expectedConstants: [
+          24,
+          [
+            make(.constant, [0]),  // the literal 24
+            make(.returnValue),
+          ],
+        ],
+        expectedInstructions: [
+          make(.constant, [1]),  // the compiled function
+          make(.setGlobal, [0]),
+          make(.getGlobal, [0]),
+          make(.call),
+          make(.pop),
+        ]
+      ),
+    ])
   }
 
   return Test.report()

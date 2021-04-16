@@ -240,6 +240,12 @@ class Compiler {
         }
         emit(opcode: .returnValue)
 
+      case let callExp as CallExpression:
+        if let err = compile(callExp.function) {
+          return err
+        }
+        emit(opcode: .call)
+
       default:
         fatalError("Unhandled node type: \(type(of: node))")
     }
