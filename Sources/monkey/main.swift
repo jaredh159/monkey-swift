@@ -17,39 +17,48 @@ if CommandLine.arguments[1] != "test" {
   fatalError("Incorrect usage")
 }
 
+var success = true
+
 if CommandLine.arguments.count == 2 || CommandLine.arguments[2] == "all" {
-  testEval()
-  testLexer()
-  testParser()
-  testAst()
-  testCode()
-  testCompiler()
-  testVm()
-  testSymbolTable()
+  success =
+    testEval()
+    && testLexer()
+    && testParser()
+    && testAst()
+    && testCode()
+    && testCompiler()
+    && testVm()
+    && testSymbolTable()
 } else {
   switch CommandLine.arguments[2] {
     case "lexer", "l":
-      testLexer()
+      success = testLexer()
     case "parser", "p":
-      testParser()
+      success = testParser()
     case "ast", "a":
-      testAst()
+      success = testAst()
     case "eval", "evaluator", "e":
-      testEval()
+      success = testEval()
     case "symbol", "s":
-      testSymbolTable()
+      success = testSymbolTable()
     case "code":
-      testCode()
+      success = testCode()
     case "vm", "v":
-      testVm()
+      success = testVm()
     case "compile", "compiler":
-      testCompiler()
+      success = testCompiler()
     case "c":
-      testCode()
-      testCompiler()
-      testVm()
-      testSymbolTable()
+      success =
+        testCode()
+        && testCompiler()
+        && testVm()
+        && testSymbolTable()
     default:
       fatalError("unknown test target")
   }
+}
+
+if !success {
+  print("\nTEST FAILURE\n".red)
+  exit(EXIT_FAILURE)
 }

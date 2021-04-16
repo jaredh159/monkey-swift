@@ -1,4 +1,4 @@
-func testSymbolTable() {
+func testSymbolTable() -> Bool {
   Test.reset(suiteName: "SymbolTable")
 
   test("define global") {
@@ -19,5 +19,5 @@ func testSymbolTable() {
     expect(b).toEqual(Symbol(name: "b", scope: .global, index: 1))
   }
 
-  Test.report()
+  return Test.report()
 }

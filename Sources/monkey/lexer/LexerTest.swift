@@ -1,4 +1,4 @@
-func testLexer() {
+func testLexer() -> Bool {
   Test.reset(suiteName: "LexerTest")
 
   test("next token") {
@@ -104,5 +104,5 @@ func testLexer() {
     }
   }
 
-  Test.report()
+  return Test.report()
 }

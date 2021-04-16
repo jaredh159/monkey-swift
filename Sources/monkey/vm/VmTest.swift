@@ -1,6 +1,6 @@
 typealias VmTestCase = (String, Any)
 
-func testVm() {
+func testVm() -> Bool {
   Test.reset(suiteName: "VirtualMachine")
 
   test("integer arithmetic") {
@@ -133,7 +133,7 @@ func testVm() {
     runVmTests(cases)
   }
 
-  Test.report()
+  return Test.report()
 }
 
 func runVmTests(_ tests: [VmTestCase]) {

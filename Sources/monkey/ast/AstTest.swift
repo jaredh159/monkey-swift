@@ -1,4 +1,4 @@
-func testAst() {
+func testAst() -> Bool {
   Test.reset(suiteName: "AstTest")
 
   test("string") {
@@ -12,5 +12,5 @@ func testAst() {
     expect(program.string).toEqual("let myVar = anotherVar;")
   }
 
-  Test.report()
+  return Test.report()
 }
