@@ -25,10 +25,10 @@ struct Test {
     passMessages.append("√: (\(suite) -> \(current))")
   }
 
-  static func report() {
+  static func report() -> Bool {
     print("\nTest suite:".grey, "\(suite)".magenta)
     passMessages.enumerated().forEach { (idx, _) in
-      print("•".green, terminator: (idx + 1) % 100 == 0 ? "\n" : "")
+      print("•".green, terminator: (idx + 1) % 300 == 0 ? "\n" : "")
     }
     if numFails > 0 {
       print("")
@@ -42,6 +42,7 @@ struct Test {
     } else {
       print("\n")
     }
+    return numFails == 0
   }
 }
 

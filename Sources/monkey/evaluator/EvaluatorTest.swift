@@ -1,4 +1,4 @@
-func testEval() {
+func testEval() -> Bool {
   Test.reset(suiteName: "EvaluatorTest")
 
   test("eval integer expression") {
@@ -371,7 +371,7 @@ func testEval() {
     }
   }
 
-  Test.report()
+  return Test.report()
 }
 
 func testEval(_ input: String) -> Object? {

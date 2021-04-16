@@ -4,7 +4,7 @@ struct CompilerTestCase {
   var expectedInstructions: [Instructions]
 }
 
-func testCompiler() {
+func testCompiler() -> Bool {
   Test.reset(suiteName: "CompilerTest")
 
   test("integer arithmetic") {
@@ -461,7 +461,7 @@ func testCompiler() {
     }
   }
 
-  Test.report()
+  return Test.report()
 }
 
 func runCompilerTests(_ tests: [CompilerTestCase]) {

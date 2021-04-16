@@ -1,4 +1,4 @@
-func testParser() {
+func testParser() -> Bool {
   Test.reset(suiteName: "ParserTest")
 
   test("let statements") {
@@ -445,7 +445,7 @@ func testParser() {
     }
   }
 
-  Test.report()
+  return Test.report()
 }
 
 func expectFirstExpr(_ input: String, _ numStatements: Int) -> ExpressionStatement? {

@@ -1,4 +1,4 @@
-func testCode() {
+func testCode() -> Bool {
   Test.reset(suiteName: "CodeTest")
 
   test("make") {
@@ -57,5 +57,5 @@ func testCode() {
     }
   }
 
-  Test.report()
+  return Test.report()
 }
