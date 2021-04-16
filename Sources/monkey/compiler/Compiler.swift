@@ -219,6 +219,27 @@ class Compiler {
         }
         emit(opcode: .index)
 
+      case let fnLit as FunctionLiteral:
+        enterScope()
+        if let err = compile(fnLit.body) {
+          return err
+        }
+        if lastInstruction.opcode == .pop {
+          replaceLastPopWithReturn()
+        }
+        if lastInstruction.opcode != .returnValue {
+          emit(opcode: .return)
+        }
+        let instructions = leaveScope()
+        let compiledFn = CompiledFunction(instructions: instructions)
+        emit(opcode: .constant, operands: [addConstant(compiledFn)])
+
+      case let returnStmt as ReturnStatement:
+        if let err = compile(returnStmt.returnValue) {
+          return err
+        }
+        emit(opcode: .returnValue)
+
       default:
         fatalError("Unhandled node type: \(type(of: node))")
     }
@@ -238,12 +259,17 @@ class Compiler {
     scopeIndex += 1
   }
 
-  @discardableResult
   func leaveScope() -> Instructions {
     let scopeInstructions = instructions
     _ = scopes.dropLast()
     scopeIndex -= 1
     return scopeInstructions
+  }
+
+  private func replaceLastPopWithReturn() {
+    let lastPos = lastInstruction.position
+    replaceInstruction(atPosition: lastPos, with: make(.returnValue))
+    lastInstruction.opcode = .returnValue
   }
 
   private func setLastInstruction(_ opcode: OpCode, _ pos: Int) {
