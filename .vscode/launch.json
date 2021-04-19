@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "debug tests",
+      "program": "${workspaceFolder}/.build/debug/monkey",
+      "args": ["test", "vm"],
+      "preLaunchTask": "swift-build"
+    }
+  ]
+}

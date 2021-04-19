@@ -1,39 +1,49 @@
 let GLOBALS_SIZE = 65536
 
 class VirtualMachine {
-  var constants: [Object]
-  var instructions: Instructions
-  var stack: [Object] = []
-  var globals: [Object?]
-  var sp: Int = 0
+  private var constants: [Object]
+  private var stack: [Object] = []
+  private var globals: [Object?]
+  private var sp = 0
+  private var frames: [Frame?] = []
+  private var frameIndex = 1
   private let STACK_SIZE = 2048
+  private let MAX_FRAMES = 1024
 
-  var lastPoppedStackElem: Object? {
-    return stack[sp]
+  private var currentFrame: Frame { frames[frameIndex - 1]! }
+
+  var lastPoppedStackElem: Object? { return stack[sp] }
+
+  private var ip: Int {
+    get { currentFrame.ip }
+    set { currentFrame.ip = newValue }
   }
 
-  init(_ bytecode: Bytecode) {
-    self.constants = bytecode.constants
-    self.instructions = bytecode.instructions
-    self.globals = [Object?](repeating: nil, count: GLOBALS_SIZE)
+  private var instructions: Instructions { currentFrame.instructions }
+
+  convenience init(_ bytecode: Bytecode) {
+    let globals = [Object?](repeating: nil, count: GLOBALS_SIZE)
+    self.init(bytecode, globals: globals)
   }
 
   init(_ bytecode: Bytecode, globals: [Object?]) {
     self.constants = bytecode.constants
-    self.instructions = bytecode.instructions
     self.globals = globals
+    self.frames = [Frame?](repeating: nil, count: MAX_FRAMES)
+
+    let mainFn = CompiledFunction(instructions: bytecode.instructions)
+    let mainFrame = Frame(fn: mainFn)
+    self.frames[0] = mainFrame
   }
 
-  private func intFromUInt16Operand(_ ip: Int) -> Int {
-    return Int(readUInt16(Array(instructions[(ip + 1)...])))
-  }
 
   func run() -> VirtualMachineError? {
-    var ip = 0
-    while ip < instructions.count {
+    while ip < instructions.count - 1 {
+      ip += 1
       guard let op = OpCode(rawValue: instructions[ip]) else {
         return .invalidOpCode(instructions[ip])
       }
+
       switch op {
         case .constant:
           let constIndex = intFromUInt16Operand(ip)
@@ -125,9 +135,21 @@ class VirtualMachine {
         case .call:
           fatalError("TODO .call")
       }
-      ip += 1
     }
     return nil
+  }
+
+  private func pushFrame(_ frame: Frame) {
+    frames[frameIndex] = frame
+    frameIndex += 1
+  }
+
+  private func popFrame() -> Frame {
+    frameIndex -= 1
+    guard let frame = frames[frameIndex] else {
+      fatalError("nil frame found at index \(frameIndex)")
+    }
+    return frame
   }
 
   private func executeIndexExpression(left: Object, index: Object) -> VirtualMachineError? {
@@ -292,6 +314,10 @@ class VirtualMachine {
       default:
         return true
     }
+  }
+
+  private func intFromUInt16Operand(_ ip: Int) -> Int {
+    return Int(readUInt16(Array(currentFrame.instructions[(ip + 1)...])))
   }
 }
 
