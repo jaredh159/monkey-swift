@@ -36,7 +36,6 @@ class VirtualMachine {
     self.frames[0] = mainFrame
   }
 
-
   func run() -> VirtualMachineError? {
     while ip < instructions.count - 1 {
       ip += 1
@@ -129,11 +128,23 @@ class VirtualMachine {
             return err
           }
         case .return:
-          fatalError("TODO .return")
+          popFrame()
+          pop()
+          if let err = push(Null) {
+            return err
+          }
         case .returnValue:
-          fatalError("TODO .returnValue")
+          let returnValue = pop()
+          popFrame()
+          pop()
+          if let err = push(returnValue) {
+            return err
+          }
         case .call:
-          fatalError("TODO .call")
+          guard let fn = stack[sp - 1] as? CompiledFunction else {
+            return .nonFunctionCall
+          }
+          pushFrame(Frame(fn: fn))
       }
     }
     return nil
@@ -144,6 +155,7 @@ class VirtualMachine {
     frameIndex += 1
   }
 
+  @discardableResult
   private func popFrame() -> Frame {
     frameIndex -= 1
     guard let frame = frames[frameIndex] else {
@@ -331,5 +343,6 @@ enum VirtualMachineError: Swift.Error {
   case unknownStringOperator(UInt8)
   case unusableHashKey(String)
   case indexOperatorUnsupported(String)
+  case nonFunctionCall
   case unknown
 }
