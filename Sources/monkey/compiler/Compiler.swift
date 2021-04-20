@@ -267,7 +267,7 @@ class Compiler {
 
   func leaveScope() -> Instructions {
     let scopeInstructions = instructions
-    _ = scopes.dropLast()
+    scopes.removeLast()
     scopeIndex -= 1
     return scopeInstructions
   }

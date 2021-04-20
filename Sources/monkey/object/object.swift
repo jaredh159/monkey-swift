@@ -116,7 +116,7 @@ struct Function: Object {
 struct CompiledFunction: Object {
   var type = ObjectType.compiledFunction
   var instructions: Instructions
-  var inspect: String { "CompileFunction" }
+  var inspect: String { "CompiledFunction" }
 }
 
 struct BuiltIn: Object {
