@@ -2,10 +2,10 @@ let GLOBALS_SIZE = 65536
 
 class VirtualMachine {
   private var constants: [Object]
-  private var stack: [Object] = []
+  private var stack: [Object?]
   private var globals: [Object?]
   private var sp = 0
-  private var frames: [Frame?] = []
+  private var frames: [Frame?]
   private var frameIndex = 1
   private let STACK_SIZE = 2048
   private let MAX_FRAMES = 1024
@@ -30,6 +30,7 @@ class VirtualMachine {
     self.constants = bytecode.constants
     self.globals = globals
     self.frames = [Frame?](repeating: nil, count: MAX_FRAMES)
+    self.stack = [Object?](repeating: nil, count: STACK_SIZE)
 
     let mainFn = CompiledFunction(instructions: bytecode.instructions)
     let mainFrame = Frame(fn: mainFn)
@@ -197,8 +198,8 @@ class VirtualMachine {
   private func buildHash(startIndex: Int, endIndex: Int) -> (Hash?, VirtualMachineError?) {
     var pairs: [HashKey: HashPair] = [:]
     for i in stride(from: startIndex, to: endIndex, by: 2) {
-      let key = stack[i]
-      let value = stack[i + 1]
+      let key = stack[i]!
+      let value = stack[i + 1]!
       guard let hashKey = HashKey(key) else {
         return (nil, .unusableHashKey(key.type.description))
       }
@@ -210,7 +211,7 @@ class VirtualMachine {
   private func buildArray(startIndex: Int, endIndex: Int) -> ArrayObject {
     var elements: [Object] = []
     for i in startIndex..<endIndex {
-      elements.append(stack[i])
+      elements.append(stack[i]!)
     }
     return ArrayObject(elements: elements)
   }
@@ -303,18 +304,14 @@ class VirtualMachine {
     guard sp < STACK_SIZE else {
       return .stackOverflow
     }
-    if sp == stack.count {
-      stack.append(obj)
-    } else {
-      stack[sp] = obj
-    }
+    stack[sp] = obj
     sp += 1
     return nil
   }
 
   @discardableResult
   private func pop() -> Object {
-    let object = stack[sp - 1]
+    let object = stack[sp - 1]!
     sp -= 1
     return object
   }
