@@ -11,7 +11,7 @@ enum CompilerError: Swift.Error {
 }
 
 class Compiler {
-  private var symbolTable: SymbolTable
+  private(set) var symbolTable: SymbolTable
   private var constants: [Object]
   private(set) var scopes: [Scope] = [Scope()]
   private(set) var scopeIndex = 0
@@ -147,7 +147,8 @@ class Compiler {
           return err
         }
         let symbol = symbolTable.define(name: letStmt.name.value)
-        emit(opcode: .setGlobal, operands: [symbol.index])
+        let opcode: OpCode = symbol.scope == .global ? .setGlobal : .setLocal
+        emit(opcode: opcode, operands: [symbol.index])
 
       case let ifExpr as IfExpression:
         if let err = compile(ifExpr.condition) {
@@ -185,7 +186,8 @@ class Compiler {
         guard let symbol = symbolTable.resolve(name: identifier.value) else {
           return .undefinedVariable(identifier.value)
         }
-        emit(opcode: .getGlobal, operands: [symbol.index])
+        let opcode: OpCode = symbol.scope == .global ? .getGlobal : .getLocal
+        emit(opcode: opcode, operands: [symbol.index])
 
       case let stringLit as StringLiteral:
         let strObj = StringObject(value: stringLit.value)
@@ -262,6 +264,7 @@ class Compiler {
 
   func enterScope() {
     scopes.append(Scope())
+    symbolTable = SymbolTable(enclosedBy: symbolTable)
     scopeIndex += 1
   }
 
@@ -269,6 +272,7 @@ class Compiler {
     let scopeInstructions = instructions
     scopes.removeLast()
     scopeIndex -= 1
+    symbolTable = symbolTable.outer!
     return scopeInstructions
   }
 

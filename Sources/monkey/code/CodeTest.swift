@@ -5,6 +5,7 @@ func testCode() -> Bool {
     let cases: [(OpCode, [Int], [UInt8])] = [
       (.constant, [65534], [OpCode.constant.asByte(), 255, 254]),
       (.add, [], [OpCode.add.asByte()]),
+      (.getLocal, [255], [OpCode.getLocal.asByte(), 255]),
     ]
 
     cases.forEach { (opcode, operands, expectedBytes) in
@@ -22,14 +23,16 @@ func testCode() -> Bool {
   test("instructions string") {
     let instructions: [Instructions] = [
       make(.add, []),
+      make(.getLocal, [1]),
       make(.constant, [2]),
       make(.constant, [65535]),
     ]
 
     let expected = """
       0000 OpAdd
-      0001 OpConstant 2
-      0004 OpConstant 65535
+      0001 OpGetLocal 1
+      0003 OpConstant 2
+      0006 OpConstant 65535
 
       """
 
@@ -39,7 +42,8 @@ func testCode() -> Bool {
 
   test("read operands") {
     let cases: [(OpCode, [Int], Int)] = [
-      (.constant, [65535], 2)
+      (.constant, [65535], 2),
+      (.getLocal, [255], 1),
     ]
     cases.forEach { (opcode, operands, bytesRead) in
       let instruction = make(opcode, operands)

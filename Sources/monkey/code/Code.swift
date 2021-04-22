@@ -41,6 +41,8 @@ enum OpCode: UInt8 {
   case null
   case setGlobal
   case getGlobal
+  case setLocal
+  case getLocal
   case array
   case hash
   case index
@@ -60,6 +62,10 @@ enum OpCode: UInt8 {
         return Definition(name: "setGlobal", operandWidths: [2])
       case .getGlobal:
         return Definition(name: "getGlobal", operandWidths: [2])
+      case .setLocal:
+        return Definition(name: "setLocal", operandWidths: [1])
+      case .getLocal:
+        return Definition(name: "getLocal", operandWidths: [1])
       case .jumpNotTruthy:
         return Definition(name: "jumpNotTruthy", operandWidths: [2])
       case .jump:
@@ -123,7 +129,8 @@ func make(_ opcode: OpCode, _ operands: [Int] = []) -> [UInt8] {
       case 2:
         instruction.append(UInt8(truncatingIfNeeded: operand >> 8))
         instruction.append(UInt8(truncatingIfNeeded: operand))
-        break
+      case 1:
+        instruction.append(UInt8(operand))
       default:
         break
     }
@@ -138,6 +145,8 @@ func readOperands(_ def: Definition, _ ins: Instructions) -> ([Int], Int) {
     switch width {
       case 2:
         operands.append(Int(readUInt16(Array(ins[offset...]))))
+      case 1:
+        operands.append(Int(readUInt8(Array(ins[offset...]))))
       default:
         break
     }
@@ -148,6 +157,10 @@ func readOperands(_ def: Definition, _ ins: Instructions) -> ([Int], Int) {
 
 func readUInt16(_ ins: Instructions) -> UInt16 {
   return [ins[1], ins[0]].withUnsafeBytes { $0.load(as: UInt16.self) }
+}
+
+func readUInt8(_ ins: Instructions) -> UInt8 {
+  return UInt8(ins[0])
 }
 
 func fmtInstructions(_ def: Definition, _ operands: [Int]) -> String {

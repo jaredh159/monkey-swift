@@ -27,8 +27,8 @@ if CommandLine.arguments.count == 2 || CommandLine.arguments[2] == "all" {
     && testAst()
     && testCode()
     && testCompiler()
-    && testVm()
     && testSymbolTable()
+    && testVm()
 } else {
   switch CommandLine.arguments[2] {
     case "lexer", "l":
