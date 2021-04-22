@@ -145,6 +145,8 @@ class VirtualMachine {
             return .nonFunctionCall
           }
           pushFrame(Frame(fn: fn))
+        default:
+          fatalError("TODO .get/setLocal")
       }
     }
     return nil

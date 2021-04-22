@@ -460,6 +460,7 @@ func testCompiler() -> Bool {
       Test.pushFail("scopeIndex wrong. got=\(compiler.scopeIndex), want=0")
       return
     }
+    let globalSymbolTable = compiler.symbolTable
 
     compiler.emit(opcode: .mul)
     compiler.enterScope()
@@ -480,9 +481,24 @@ func testCompiler() -> Bool {
       return
     }
 
+    guard compiler.symbolTable.outer === globalSymbolTable else {
+      Test.pushFail("compiler did not enclose symboltable")
+      return
+    }
+
     _ = compiler.leaveScope()
     guard compiler.scopeIndex == 0 else {
       Test.pushFail("scopeIndex wrong. got=\(compiler.scopeIndex), want=0")
+      return
+    }
+
+    guard compiler.symbolTable === globalSymbolTable else {
+      Test.pushFail("compiler did not restore global symbol table")
+      return
+    }
+
+    guard compiler.symbolTable.outer == nil else {
+      Test.pushFail("compiler modified global symbol table incorrectly")
       return
     }
 
@@ -539,6 +555,72 @@ func testCompiler() -> Bool {
           make(.setGlobal, [0]),
           make(.getGlobal, [0]),
           make(.call),
+          make(.pop),
+        ]
+      ),
+    ])
+  }
+
+  test("let statement scopes") {
+    runCompilerTests([
+      CompilerTestCase(
+        input: "let num = 55; fn() { num }",
+        expectedConstants: [
+          55,
+          [make(.getGlobal, [0]), make(.returnValue)],
+        ],
+        expectedInstructions: [
+          make(.constant, [0]),
+          make(.setGlobal, [0]),
+          make(.constant, [1]),
+          make(.pop),
+        ]
+      ),
+      CompilerTestCase(
+        input: """
+          fn () {
+            let num = 55;
+            num
+          }
+          """,
+        expectedConstants: [
+          55,
+          [
+            make(.constant, [0]),
+            make(.setLocal, [0]),
+            make(.getLocal, [0]),
+            make(.returnValue),
+          ],
+        ],
+        expectedInstructions: [
+          make(.constant, [1]),
+          make(.pop),
+        ]
+      ),
+      CompilerTestCase(
+        input: """
+          fn() {
+            let a = 55;
+            let b = 77;
+            a + b
+          }
+          """,
+        expectedConstants: [
+          55,
+          77,
+          [
+            make(.constant, [0]),
+            make(.setLocal, [0]),
+            make(.constant, [1]),
+            make(.setLocal, [1]),
+            make(.getLocal, [0]),
+            make(.getLocal, [1]),
+            make(.add),
+            make(.returnValue),
+          ],
+        ],
+        expectedInstructions: [
+          make(.constant, [2]),
           make(.pop),
         ]
       ),
