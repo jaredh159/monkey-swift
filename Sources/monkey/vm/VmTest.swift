@@ -210,12 +210,22 @@ func testVm() -> Bool {
           returnsOneReturner()();
           """,
           1
-        )
+        ),
+        (
+          """
+          let returnsOneReturner = fn() {
+            let returnsOne = fn() { 1; };
+            returnsOne;
+          };
+          returnsOneReturner()();
+          """,
+          1
+        ),
       ])
     }
   }
 
-  xtest("calling functions with bindings") {
+  test("calling functions with bindings") {
     runVmTests([
       (
         """

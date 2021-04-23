@@ -32,8 +32,8 @@ class VirtualMachine {
     self.frames = [Frame?](repeating: nil, count: MAX_FRAMES)
     self.stack = [Object?](repeating: nil, count: STACK_SIZE)
 
-    let mainFn = CompiledFunction(instructions: bytecode.instructions)
-    let mainFrame = Frame(fn: mainFn)
+    let mainFn = CompiledFunction(instructions: bytecode.instructions, numLocals: 0)
+    let mainFrame = Frame(fn: mainFn, basePointer: 0)
     self.frames[0] = mainFrame
   }
 
@@ -45,26 +45,32 @@ class VirtualMachine {
       }
 
       switch op {
+
         case .constant:
           let constIndex = intFromUInt16Operand(ip)
           ip += 2
           if let err = push(constants[constIndex]) {
             return err
           }
+
         case .add, .sub, .mul, .div:
           if let err = executeBinaryOperation(op) {
             return err
           }
+
         case .pop:
           pop()
+
         case .true, .false:
           if let err = push(op == .true ? Boolean.true : Boolean.false) {
             return err
           }
+
         case .equal, .notEqual, .greaterThan:
           if let err = executeComparison(op) {
             return err
           }
+
         case .bang:
           let operand = pop()
           switch operand {
@@ -75,13 +81,16 @@ class VirtualMachine {
             default:
               push(Boolean.false)
           }
+
         case .minus:
           if let err = executeMinusOperator() {
             return err
           }
+
         case .jump:
           let pos = intFromUInt16Operand(ip)
           ip = pos - 1
+
         case .jumpNotTruthy:
           let pos = intFromUInt16Operand(ip)
           ip += 2
@@ -89,20 +98,24 @@ class VirtualMachine {
           if !isTruthy(condition) {
             ip = pos - 1
           }
+
         case .null:
           if let err = push(Null) {
             return err
           }
+
         case .setGlobal:
           let globalIndex = intFromUInt16Operand(ip)
           ip += 2
           globals[globalIndex] = pop()
+
         case .getGlobal:
           let globalIndex = intFromUInt16Operand(ip)
           ip += 2
           if let err = push(globals[globalIndex]!) {
             return err
           }
+
         case .array:
           let numElements = intFromUInt16Operand(ip)
           ip += 2
@@ -111,6 +124,7 @@ class VirtualMachine {
           if let err = push(array) {
             return err
           }
+
         case .hash:
           let numElements = intFromUInt16Operand(ip)
           ip += 2
@@ -122,32 +136,49 @@ class VirtualMachine {
           if let err = push(hash!) {
             return err
           }
+
         case .index:
           let index = pop()
           let left = pop()
           if let err = executeIndexExpression(left: left, index: index) {
             return err
           }
+
         case .return:
-          popFrame()
-          pop()
+          let frame = popFrame()
+          sp = frame.basePointer - 1
           if let err = push(Null) {
             return err
           }
+
         case .returnValue:
           let returnValue = pop()
-          popFrame()
-          pop()
+          let frame = popFrame()
+          sp = frame.basePointer - 1
           if let err = push(returnValue) {
             return err
           }
+
         case .call:
           guard let fn = stack[sp - 1] as? CompiledFunction else {
             return .nonFunctionCall
           }
-          pushFrame(Frame(fn: fn))
-        default:
-          fatalError("TODO .get/setLocal")
+          let frame = Frame(fn: fn, basePointer: sp)
+          pushFrame(frame)
+          sp = frame.basePointer + fn.numLocals
+
+        case .setLocal:
+          let localIndex = intFromUInt8Operand(ip)
+          ip += 1
+          stack[currentFrame.basePointer + localIndex] = pop()
+
+        case .getLocal:
+          let localIndex = intFromUInt8Operand(ip)
+          ip += 1
+          if let err = push(stack[currentFrame.basePointer + localIndex]!) {
+            return err
+          }
+
       }
     }
     return nil
@@ -329,6 +360,10 @@ class VirtualMachine {
 
   private func intFromUInt16Operand(_ ip: Int) -> Int {
     return Int(readUInt16(Array(currentFrame.instructions[(ip + 1)...])))
+  }
+
+  private func intFromUInt8Operand(_ ip: Int) -> Int {
+    return Int(readUInt8(Array(currentFrame.instructions[(ip + 1)...])))
   }
 }
 

@@ -232,8 +232,9 @@ class Compiler {
         if lastInstruction.opcode != .returnValue {
           emit(opcode: .return)
         }
+        let numLocals = symbolTable.numDefinitions
         let instructions = leaveScope()
-        let compiledFn = CompiledFunction(instructions: instructions)
+        let compiledFn = CompiledFunction(instructions: instructions, numLocals: numLocals)
         emit(opcode: .constant, operands: [addConstant(compiledFn)])
 
       case let returnStmt as ReturnStatement:

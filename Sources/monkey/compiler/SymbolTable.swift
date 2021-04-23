@@ -12,7 +12,7 @@ struct Symbol: Equatable {
 class SymbolTable {
   private(set) var outer: SymbolTable?
   private var store: [String: Symbol] = [:]
-  private var numDefinitions: Int = 0
+  private(set) var numDefinitions: Int = 0
 
   @discardableResult
   func define(name: String) -> Symbol {
@@ -27,9 +27,7 @@ class SymbolTable {
     return store[name] ?? outer?.resolve(name: name)
   }
 
-  init() {}
-
-  init(enclosedBy outer: SymbolTable) {
+  init(enclosedBy outer: SymbolTable? = nil) {
     self.outer = outer
   }
 }
