@@ -116,6 +116,7 @@ struct Function: Object {
 struct CompiledFunction: Object {
   var type = ObjectType.compiledFunction
   var instructions: Instructions
+  var numLocals: Int
   var inspect: String { "CompiledFunction" }
 }
 
