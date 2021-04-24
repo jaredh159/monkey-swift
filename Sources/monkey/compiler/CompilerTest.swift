@@ -534,7 +534,7 @@ func testCompiler() -> Bool {
         ],
         expectedInstructions: [
           make(.constant, [1]),  // the compiled function
-          make(.call),
+          make(.call, [0]),
           make(.pop),
         ]
       ),
@@ -554,7 +554,57 @@ func testCompiler() -> Bool {
           make(.constant, [1]),  // the compiled function
           make(.setGlobal, [0]),
           make(.getGlobal, [0]),
-          make(.call),
+          make(.call, [0]),
+          make(.pop),
+        ]
+      ),
+      CompilerTestCase(
+        input: """
+          let oneArg = fn(a) { a };
+          oneArg(24);
+          """,
+        expectedConstants: [
+          [
+            make(.getLocal, [0]),
+            make(.returnValue),
+          ],
+          24,
+        ],
+        expectedInstructions: [
+          make(.constant, [0]),
+          make(.setGlobal, [0]),
+          make(.getGlobal, [0]),
+          make(.constant, [1]),
+          make(.call, [1]),
+          make(.pop),
+        ]
+      ),
+      CompilerTestCase(
+        input: """
+          let manyArg = fn(a, b, c) { a; b; c };
+          manyArg(24, 25, 26);
+          """,
+        expectedConstants: [
+          [
+            make(.getLocal, [0]),
+            make(.pop),
+            make(.getLocal, [1]),
+            make(.pop),
+            make(.getLocal, [2]),
+            make(.returnValue),
+          ],
+          24,
+          25,
+          26,
+        ],
+        expectedInstructions: [
+          make(.constant, [0]),
+          make(.setGlobal, [0]),
+          make(.getGlobal, [0]),
+          make(.constant, [1]),
+          make(.constant, [2]),
+          make(.constant, [3]),
+          make(.call, [3]),
           make(.pop),
         ]
       ),

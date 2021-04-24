@@ -223,6 +223,9 @@ class Compiler {
 
       case let fnLit as FunctionLiteral:
         enterScope()
+        for param in fnLit.parameters {
+          symbolTable.define(name: param.value)
+        }
         if let err = compile(fnLit.body) {
           return err
         }
@@ -234,7 +237,11 @@ class Compiler {
         }
         let numLocals = symbolTable.numDefinitions
         let instructions = leaveScope()
-        let compiledFn = CompiledFunction(instructions: instructions, numLocals: numLocals)
+        let compiledFn = CompiledFunction(
+          instructions: instructions,
+          numLocals: numLocals,
+          numParameters: fnLit.parameters.count
+        )
         emit(opcode: .constant, operands: [addConstant(compiledFn)])
 
       case let returnStmt as ReturnStatement:
@@ -247,7 +254,12 @@ class Compiler {
         if let err = compile(callExp.function) {
           return err
         }
-        emit(opcode: .call)
+        for argument in callExp.arguments {
+          if let err = compile(argument) {
+            return err
+          }
+        }
+        emit(opcode: .call, operands: [callExp.arguments.count])
 
       default:
         fatalError("Unhandled node type: \(type(of: node))")

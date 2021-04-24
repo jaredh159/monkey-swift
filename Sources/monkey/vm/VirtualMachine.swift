@@ -32,7 +32,12 @@ class VirtualMachine {
     self.frames = [Frame?](repeating: nil, count: MAX_FRAMES)
     self.stack = [Object?](repeating: nil, count: STACK_SIZE)
 
-    let mainFn = CompiledFunction(instructions: bytecode.instructions, numLocals: 0)
+    let mainFn = CompiledFunction(
+      instructions: bytecode.instructions,
+      numLocals: 0,
+      numParameters: 0
+    )
+
     let mainFrame = Frame(fn: mainFn, basePointer: 0)
     self.frames[0] = mainFrame
   }
@@ -160,12 +165,11 @@ class VirtualMachine {
           }
 
         case .call:
-          guard let fn = stack[sp - 1] as? CompiledFunction else {
-            return .nonFunctionCall
+          let numArgs = intFromUInt8Operand(ip)
+          ip += 1
+          if let err = callFunction(numArgs) {
+            return err
           }
-          let frame = Frame(fn: fn, basePointer: sp)
-          pushFrame(frame)
-          sp = frame.basePointer + fn.numLocals
 
         case .setLocal:
           let localIndex = intFromUInt8Operand(ip)
@@ -181,6 +185,19 @@ class VirtualMachine {
 
       }
     }
+    return nil
+  }
+
+  private func callFunction(_ numArgs: Int) -> VirtualMachineError? {
+    guard let fn = stack[sp - 1 - numArgs] as? CompiledFunction else {
+      return .nonFunctionCall
+    }
+    guard numArgs == fn.numParameters else {
+      return .fnArity(fn.numParameters, numArgs)
+    }
+    let frame = Frame(fn: fn, basePointer: sp - numArgs)
+    pushFrame(frame)
+    sp = frame.basePointer + fn.numLocals
     return nil
   }
 
@@ -367,7 +384,7 @@ class VirtualMachine {
   }
 }
 
-enum VirtualMachineError: Swift.Error {
+enum VirtualMachineError: Swift.Error, CustomStringConvertible {
   case stackOverflow
   case invalidOpCode(UInt8)
   case unknownOperator(UInt8)
@@ -377,6 +394,36 @@ enum VirtualMachineError: Swift.Error {
   case unknownStringOperator(UInt8)
   case unusableHashKey(String)
   case indexOperatorUnsupported(String)
+  case fnArity(Int, Int)
   case nonFunctionCall
   case unknown
+
+  var description: String {
+    switch self {
+      case .stackOverflow:
+        return "stack overflow"
+      case .invalidOpCode(let int):
+        return "invalid opcode: \(int)"
+      case .unknownOperator(let int):
+        return "unknown operator: \(int)"
+      case .unknownIntegerOperator(let int):
+        return "unknown integer operator: \(int)"
+      case .unexpectedObjectType:
+        return "unexpected object type"
+      case .unexpectedBooleanOperator(let int):
+        return "unknown boolen operator: \(int)"
+      case .unknownStringOperator(let int):
+        return "unknown string operator: \(int)"
+      case .unusableHashKey(let string):
+        return "unusable hash key: \(string)"
+      case .indexOperatorUnsupported(let op):
+        return "index operator unsupported: \(op)"
+      case .fnArity(let expected, let actual):
+        return "wrong number of arguments: want=\(expected), got=\(actual)"
+      case .nonFunctionCall:
+        return "non function call"
+      case .unknown:
+        return "unknown error"
+    }
+  }
 }

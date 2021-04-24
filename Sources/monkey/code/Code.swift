@@ -73,7 +73,7 @@ enum OpCode: UInt8 {
       case .constant:
         return Definition(name: "constant", operandWidths: [2])
       case .call:
-        return Definition(name: "call", operandWidths: [])
+        return Definition(name: "call", operandWidths: [1])
       case .returnValue:
         return Definition(name: "returnValue", operandWidths: [])
       case .return:
