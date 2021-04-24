@@ -276,6 +276,89 @@ func testVm() -> Bool {
     ])
   }
 
+  test("calling functions with arguments and bindings") {
+    runVmTests([
+      (
+        """
+        let identity = fn(a) { a; };
+        identity(4);
+        """,
+        4
+      ),
+      (
+        """
+        let sum = fn(a, b) { a + b; };
+        sum(1, 2);
+        """,
+        3
+      ),
+      (
+        """
+        let sum = fn(a, b) {
+          let c = a + b;
+          c;
+        };
+        sum(1, 2);
+        """,
+        3
+      ),
+      (
+        """
+        let sum = fn(a, b) {
+          let c = a + b;
+          c;
+        };
+        sum(1, 2) + sum(3, 4);
+        """,
+        10
+      ),
+      (
+        """
+        let sum = fn(a, b) {
+        let c = a + b;
+          c;
+        };
+        let outer = fn() {
+          sum(1, 2) + sum(3, 4);
+        };
+        outer();
+        """,
+        10
+      ),
+      (
+        """
+        let globalNum = 10;
+        let sum = fn(a, b) {
+          let c = a + b;
+          c + globalNum;
+        };
+        let outer = fn() {
+          sum(1, 2) + sum(3, 4) + globalNum;
+        };
+        outer() + globalNum;
+        """,
+        50
+      ),
+    ])
+  }
+
+  test("calling functions with wrong arguments") {
+    runVmTests([
+      (
+        "fn() { 1; }(1);",
+        VirtualMachineError.fnArity(0, 1)
+      ),
+      (
+        "fn(a) { a; }();",
+        VirtualMachineError.fnArity(1, 0)
+      ),
+      (
+        "fn(a, b) { a + b; }(1);",
+        VirtualMachineError.fnArity(2, 1)
+      ),
+    ])
+  }
+
   return Test.report()
 }
 
@@ -289,7 +372,11 @@ func runVmTests(_ tests: [VmTestCase]) {
     }
     let vm = VirtualMachine(compiler.bytecode())
     if let err = vm.run() {
-      Test.pushFail("vm error: \(err)")
+      guard let expectedErr = expected as? VirtualMachineError else {
+        Test.pushFail("unexpected vm error: \(err)")
+        return
+      }
+      expect(err.description).toEqual(expectedErr.description)
       return
     }
     switch expected {
