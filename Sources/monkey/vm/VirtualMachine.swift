@@ -183,6 +183,8 @@ class VirtualMachine {
             return err
           }
 
+        case .getBuiltIn:
+          fatalError("todo getbuiltin")
       }
     }
     return nil

@@ -1,4 +1,4 @@
-enum BuiltIns: UInt8, CaseIterable {
+enum BuiltIns: String, CaseIterable {
   case len
   case puts
   case first
@@ -6,22 +6,11 @@ enum BuiltIns: UInt8, CaseIterable {
   case rest
   case push
 
-  init?(from string: String) {
-    switch string {
-      case "len":
-        self = .len
-      case "puts":
-        self = .puts
-      case "first":
-        self = .first
-      case "last":
-        self = .last
-      case "rest":
-        self = .rest
-      case "push":
-        self = .push
-      default:
-        return nil
+  init?(from index: Int) {
+    if BuiltIns.allCases.indices.contains(index) {
+      self = BuiltIns.allCases[index]
+    } else {
+      return nil
     }
   }
 

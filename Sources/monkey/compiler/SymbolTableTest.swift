@@ -139,5 +139,36 @@ func testSymbolTable() -> Bool {
     }
   }
 
+  test("define resolve builtins") {
+    let global = SymbolTable()
+    let firstLocal = SymbolTable(enclosedBy: global)
+    let secondLocal = SymbolTable(enclosedBy: firstLocal)
+
+    let cases: [Symbol] = [
+      Symbol(name: "a", scope: .builtIn, index: 0),
+      Symbol(name: "c", scope: .builtIn, index: 1),
+      Symbol(name: "e", scope: .builtIn, index: 2),
+      Symbol(name: "f", scope: .builtIn, index: 3),
+    ]
+
+    for symbol in cases {
+      global.defineBuiltIn(name: symbol.name, index: symbol.index)
+    }
+
+    for table in [global, firstLocal, secondLocal] {
+      for expectedSymbol in cases {
+        guard let result = table.resolve(name: expectedSymbol.name) else {
+          Test.pushFail("name \(expectedSymbol.name) not resolvable")
+          continue
+        }
+        guard expectedSymbol == result else {
+          Test.pushFail("expected a=\(expectedSymbol), got=\(result)")
+          continue
+        }
+        Test.pushPass()
+      }
+    }
+  }
+
   return Test.report()
 }

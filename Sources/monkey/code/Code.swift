@@ -43,6 +43,7 @@ enum OpCode: UInt8 {
   case getGlobal
   case setLocal
   case getLocal
+  case getBuiltIn
   case array
   case hash
   case index
@@ -54,6 +55,8 @@ enum OpCode: UInt8 {
 
   func lookup() -> Definition {
     switch self {
+      case .getBuiltIn:
+        return Definition(name: "getBuiltIn", operandWidths: [1])
       case .hash:
         return Definition(name: "hash", operandWidths: [2])
       case .array:

@@ -49,12 +49,14 @@ class Compiler {
     var position: Int
   }
 
-  init() {
-    self.symbolTable = SymbolTable()
-    self.constants = []
+  convenience init() {
+    self.init(symbolTable: SymbolTable(), constants: [])
   }
 
   init(symbolTable: SymbolTable, constants: [Object]) {
+    for (index, builtIn) in BuiltIns.allCases.enumerated() {
+      symbolTable.defineBuiltIn(name: builtIn.rawValue, index: index)
+    }
     self.symbolTable = symbolTable
     self.constants = constants
   }
@@ -186,8 +188,7 @@ class Compiler {
         guard let symbol = symbolTable.resolve(name: identifier.value) else {
           return .undefinedVariable(identifier.value)
         }
-        let opcode: OpCode = symbol.scope == .global ? .getGlobal : .getLocal
-        emit(opcode: opcode, operands: [symbol.index])
+        loadSymbol(symbol)
 
       case let stringLit as StringLiteral:
         let strObj = StringObject(value: stringLit.value)
@@ -328,6 +329,17 @@ class Compiler {
     }
     let newInstruction = make(op, [newOperand])
     replaceInstruction(atPosition: opPos, with: newInstruction)
+  }
+
+  private func loadSymbol(_ symbol: Symbol) {
+    switch symbol.scope {
+      case .local:
+        emit(opcode: .getLocal, operands: [symbol.index])
+      case .global:
+        emit(opcode: .getGlobal, operands: [symbol.index])
+      case .builtIn:
+        emit(opcode: .getBuiltIn, operands: [symbol.index])
+    }
   }
 }
 
