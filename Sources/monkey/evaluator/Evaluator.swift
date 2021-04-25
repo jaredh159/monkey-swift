@@ -172,8 +172,8 @@ func evalIdentifier(_ ident: Identifier, _ env: Environment) -> Object {
     return value
   }
 
-  if let builtin = MonkeyBuiltins[ident.value] {
-    return builtin
+  if let builtin = BuiltIns(from: ident.value) {
+    return builtin.object()
   }
 
   return Error("identifier not found: \(ident.value)")

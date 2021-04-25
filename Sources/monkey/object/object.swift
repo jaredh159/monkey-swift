@@ -121,9 +121,11 @@ struct CompiledFunction: Object {
   var inspect: String { "CompiledFunction" }
 }
 
+typealias BuiltInFn = (_ args: [Object]) -> Object
+
 struct BuiltIn: Object {
   var type = ObjectType.builtin
-  var fn: (_ args: [Object]) -> Object
+  var fn: BuiltInFn
   var inspect: String { "builtin function" }
 }
 
