@@ -1,6 +1,7 @@
 enum SymbolScope: String {
   case global = "GLOBAL"
   case local = "LOCAL"
+  case builtIn = "BUILTIN"
 }
 
 struct Symbol: Equatable {
@@ -20,6 +21,13 @@ class SymbolTable {
     let symbol = Symbol(name: name, scope: scope, index: numDefinitions)
     store[name] = symbol
     numDefinitions += 1
+    return symbol
+  }
+
+  @discardableResult
+  func defineBuiltIn(name: String, index: Int) -> Symbol {
+    let symbol = Symbol(name: name, scope: .builtIn, index: index)
+    store[name] = symbol
     return symbol
   }
 

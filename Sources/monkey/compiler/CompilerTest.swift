@@ -677,6 +677,44 @@ func testCompiler() -> Bool {
     ])
   }
 
+  test("builtins") {
+    runCompilerTests([
+      CompilerTestCase(
+        input: """
+          len([]);
+          push([], 1);
+          """,
+        expectedConstants: [1],
+        expectedInstructions: [
+          make(.getBuiltIn, [0]),
+          make(.array, [0]),
+          make(.call, [1]),
+          make(.pop),
+          make(.getBuiltIn, [5]),
+          make(.array, [0]),
+          make(.constant, [0]),
+          make(.call, [2]),
+          make(.pop),
+        ]
+      ),
+      CompilerTestCase(
+        input: "fn() { len([]) }",
+        expectedConstants: [
+          [
+            make(.getBuiltIn, [0]),
+            make(.array, [0]),
+            make(.call, [1]),
+            make(.returnValue),
+          ]
+        ],
+        expectedInstructions: [
+          make(.constant, [0]),
+          make(.pop),
+        ]
+      ),
+    ])
+  }
+
   return Test.report()
 }
 

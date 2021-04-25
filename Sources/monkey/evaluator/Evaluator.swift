@@ -172,7 +172,7 @@ func evalIdentifier(_ ident: Identifier, _ env: Environment) -> Object {
     return value
   }
 
-  if let builtin = BuiltIns(from: ident.value) {
+  if let builtin = BuiltIns(rawValue: ident.value) {
     return builtin.object()
   }
 
