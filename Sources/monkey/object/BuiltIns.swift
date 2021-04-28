@@ -54,7 +54,7 @@ enum BuiltIns: String, CaseIterable {
             return Error("wrong number of arguments, got=\(args.count), want=1")
           }
           guard let array = args.first as? ArrayObject else {
-            return Error("argument to `first` must be array, got \(args.first.type)")
+            return Error("argument to `last` must be ARRAY, got \(args.first.type)")
           }
           return array.elements.last ?? Null
         }
@@ -67,6 +67,9 @@ enum BuiltIns: String, CaseIterable {
           guard let array = args.first as? ArrayObject else {
             return Error("argument to `first` must be ARRAY, got \(args.first.type)")
           }
+          if array.elements.isEmpty {
+            return Null
+          }
           return ArrayObject(elements: Array(array.elements.dropFirst(1)))
         }
 
@@ -76,7 +79,7 @@ enum BuiltIns: String, CaseIterable {
             return Error("wrong number of arguments, got=\(args.count), want=2")
           }
           guard let array = args.first as? ArrayObject else {
-            return Error("argument to `first` must be ARRAY, got \(args.first.type)")
+            return Error("argument to `push` must be ARRAY, got \(args.first.type)")
           }
           return ArrayObject(elements: array.elements + [args[1]])
         }
