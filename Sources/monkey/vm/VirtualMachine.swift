@@ -167,7 +167,7 @@ class VirtualMachine {
         case .call:
           let numArgs = intFromUInt8Operand(ip)
           ip += 1
-          if let err = callFunction(numArgs) {
+          if let err = executeCall(numArgs) {
             return err
           }
 
@@ -184,16 +184,40 @@ class VirtualMachine {
           }
 
         case .getBuiltIn:
-          fatalError("todo getbuiltin")
+          let builtInIndex = intFromUInt8Operand(ip)
+          ip += 1
+          guard let builtIn = BuiltIns(from: builtInIndex) else {
+            return .invalidBuiltInFnIndex(builtInIndex)
+          }
+          if let err = push(builtIn.object()) {
+            return err
+          }
+
       }
     }
     return nil
   }
 
-  private func callFunction(_ numArgs: Int) -> VirtualMachineError? {
-    guard let fn = stack[sp - 1 - numArgs] as? CompiledFunction else {
-      return .nonFunctionCall
+  private func executeCall(_ numArgs: Int) -> VirtualMachineError? {
+    let callee = stack[sp - numArgs - 1]
+    switch callee {
+      case let userFn as CompiledFunction:
+        return callFunction(userFn, numArgs)
+      case let builtIn as BuiltIn:
+        return callBuiltIn(builtIn, numArgs)
+      default:
+        return .nonFunctionCall
     }
+  }
+
+  private func callBuiltIn(_ builtIn: BuiltIn, _ numArgs: Int) -> VirtualMachineError? {
+    let args = stack[sp - numArgs..<sp].compactMap { $0 }
+    let result = builtIn.fn(args)
+    sp = sp - numArgs - 1
+    return push(result)
+  }
+
+  private func callFunction(_ fn: CompiledFunction, _ numArgs: Int) -> VirtualMachineError? {
     guard numArgs == fn.numParameters else {
       return .fnArity(fn.numParameters, numArgs)
     }
@@ -397,6 +421,7 @@ enum VirtualMachineError: Swift.Error, CustomStringConvertible {
   case unusableHashKey(String)
   case indexOperatorUnsupported(String)
   case fnArity(Int, Int)
+  case invalidBuiltInFnIndex(Int)
   case nonFunctionCall
   case unknown
 
@@ -422,6 +447,8 @@ enum VirtualMachineError: Swift.Error, CustomStringConvertible {
         return "index operator unsupported: \(op)"
       case .fnArity(let expected, let actual):
         return "wrong number of arguments: want=\(expected), got=\(actual)"
+      case .invalidBuiltInFnIndex(let int):
+        return "invalid built-in fn index: \(int)"
       case .nonFunctionCall:
         return "non function call"
       case .unknown:

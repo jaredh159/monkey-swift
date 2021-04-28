@@ -359,6 +359,47 @@ func testVm() -> Bool {
     ])
   }
 
+  test("built in functions") {
+    runVmTests([
+      (#"len("")"#, 0),
+      (#"len("four")"#, 4),
+      (#"len("hello world")"#, 11),
+      (#"len([1, 2, 3])"#, 3),
+      // (#"puts("hello", "world")"#, Null), // <-- causes test output
+      (#"first([1, 2, 3])"#, 1),
+      (#"last([1, 2, 3])"#, 3),
+      (#"last([])"#, Null),
+      (#"first([])"#, Null),
+      (#"rest([])"#, Null),
+      (#"push([], 1)"#, [1]),
+      (#"rest([1, 2, 3])"#, [2, 3]),
+      (
+        "len(1)",
+        Error("argument to `len` not supported, got=INTEGER")
+      ),
+      (
+        #"len("one", "two")"#,
+        Error("wrong number of arguments, got=2, want=1")
+      ),
+      (
+        #"len("one", "two")"#,
+        Error("wrong number of arguments, got=2, want=1")
+      ),
+      (
+        #"first(1)"#,
+        Error("argument to `first` must be ARRAY, got INTEGER")
+      ),
+      (
+        #"last(1)"#,
+        Error("argument to `last` must be ARRAY, got INTEGER")
+      ),
+      (
+        #"push(1, 1)"#,
+        Error("argument to `push` must be ARRAY, got INTEGER")
+      ),
+    ])
+  }
+
   return Test.report()
 }
 
@@ -388,6 +429,8 @@ func runVmTests(_ tests: [VmTestCase]) {
         expect(vm.lastPoppedStackElem).toBeNull()
       case let string as String:
         expect(vm.lastPoppedStackElem).toBeObject(string: string)
+      case let errObj as Error:
+        expect(vm.lastPoppedStackElem).toBeObject(error: errObj.message)
       case let intArray as [Int]:
         let last = vm.lastPoppedStackElem
         guard let arrayObj = last as? ArrayObject else {
