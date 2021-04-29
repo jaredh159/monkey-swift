@@ -6,6 +6,7 @@ func testCode() -> Bool {
       (.constant, [65534], [OpCode.constant.asByte(), 255, 254]),
       (.add, [], [OpCode.add.asByte()]),
       (.getLocal, [255], [OpCode.getLocal.asByte(), 255]),
+      (.closure, [65534, 255], [OpCode.closure.asByte(), 255, 254, 255]),
     ]
 
     cases.forEach { (opcode, operands, expectedBytes) in

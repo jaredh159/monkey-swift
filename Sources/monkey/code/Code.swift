@@ -1,5 +1,4 @@
 typealias Instructions = [UInt8]
-// typealias Opcode = UInt8
 
 extension Array where Element == UInt8 {
   var string: String {
@@ -49,12 +48,15 @@ enum OpCode: UInt8 {
   case index
   case call
   case returnValue
+  case closure
   case `return`
   case `true`
   case `false`
 
   func lookup() -> Definition {
     switch self {
+      case .closure:
+        return Definition(name: "closure", operandWidths: [2, 1])
       case .getBuiltIn:
         return Definition(name: "getBuiltIn", operandWidths: [1])
       case .hash:

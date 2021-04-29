@@ -403,7 +403,7 @@ func testCompiler() -> Bool {
           ],
         ],
         expectedInstructions: [
-          make(.constant, [2]),
+          make(.closure, [2, 0]),
           make(.pop),
         ]
       ),
@@ -420,7 +420,7 @@ func testCompiler() -> Bool {
           ],
         ],
         expectedInstructions: [
-          make(.constant, [2]),
+          make(.closure, [2, 0]),
           make(.pop),
         ]
       ),
@@ -437,7 +437,7 @@ func testCompiler() -> Bool {
           ],
         ],
         expectedInstructions: [
-          make(.constant, [2]),
+          make(.closure, [2, 0]),
           make(.pop),
         ]
       ),
@@ -449,7 +449,7 @@ func testCompiler() -> Bool {
       CompilerTestCase(
         input: "fn() { }",
         expectedConstants: [[make(.return)]],
-        expectedInstructions: [make(.constant, [0]), make(.pop)]
+        expectedInstructions: [make(.closure, [0, 0]), make(.pop)]
       )
     ])
   }
@@ -533,7 +533,7 @@ func testCompiler() -> Bool {
           ],
         ],
         expectedInstructions: [
-          make(.constant, [1]),  // the compiled function
+          make(.closure, [1, 0]),  // the compiled function
           make(.call, [0]),
           make(.pop),
         ]
@@ -551,7 +551,7 @@ func testCompiler() -> Bool {
           ],
         ],
         expectedInstructions: [
-          make(.constant, [1]),  // the compiled function
+          make(.closure, [1, 0]),  // the compiled function
           make(.setGlobal, [0]),
           make(.getGlobal, [0]),
           make(.call, [0]),
@@ -571,7 +571,7 @@ func testCompiler() -> Bool {
           24,
         ],
         expectedInstructions: [
-          make(.constant, [0]),
+          make(.closure, [0, 0]),
           make(.setGlobal, [0]),
           make(.getGlobal, [0]),
           make(.constant, [1]),
@@ -598,7 +598,7 @@ func testCompiler() -> Bool {
           26,
         ],
         expectedInstructions: [
-          make(.constant, [0]),
+          make(.closure, [0, 0]),
           make(.setGlobal, [0]),
           make(.getGlobal, [0]),
           make(.constant, [1]),
@@ -622,7 +622,7 @@ func testCompiler() -> Bool {
         expectedInstructions: [
           make(.constant, [0]),
           make(.setGlobal, [0]),
-          make(.constant, [1]),
+          make(.closure, [1, 0]),
           make(.pop),
         ]
       ),
@@ -643,7 +643,7 @@ func testCompiler() -> Bool {
           ],
         ],
         expectedInstructions: [
-          make(.constant, [1]),
+          make(.closure, [1, 0]),
           make(.pop),
         ]
       ),
@@ -670,7 +670,7 @@ func testCompiler() -> Bool {
           ],
         ],
         expectedInstructions: [
-          make(.constant, [2]),
+          make(.closure, [2, 0]),
           make(.pop),
         ]
       ),
@@ -708,7 +708,7 @@ func testCompiler() -> Bool {
           ]
         ],
         expectedInstructions: [
-          make(.constant, [0]),
+          make(.closure, [0, 0]),
           make(.pop),
         ]
       ),
