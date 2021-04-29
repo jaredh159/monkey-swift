@@ -37,8 +37,9 @@ class VirtualMachine {
       numLocals: 0,
       numParameters: 0
     )
+    let mainClosure = Closure(fn: mainFn, free: [])
 
-    let mainFrame = Frame(fn: mainFn, basePointer: 0)
+    let mainFrame = Frame(closure: mainClosure, basePointer: 0)
     self.frames[0] = mainFrame
   }
 
@@ -193,6 +194,13 @@ class VirtualMachine {
             return err
           }
 
+        case .closure:
+          let constIndex = intFromUInt16Operand(ip)
+          _ = intFromUInt8Operand(ip + 2)  // I think +2 is correct
+          ip += 3
+          if let err = pushClosure(constIndex) {
+            return err
+          }
       }
     }
     return nil
@@ -201,12 +209,12 @@ class VirtualMachine {
   private func executeCall(_ numArgs: Int) -> VirtualMachineError? {
     let callee = stack[sp - numArgs - 1]
     switch callee {
-      case let userFn as CompiledFunction:
-        return callFunction(userFn, numArgs)
+      case let closure as Closure:
+        return callClosure(closure, numArgs)
       case let builtIn as BuiltIn:
         return callBuiltIn(builtIn, numArgs)
       default:
-        return .nonFunctionCall
+        return .nonCallableCall
     }
   }
 
@@ -217,14 +225,22 @@ class VirtualMachine {
     return push(result)
   }
 
-  private func callFunction(_ fn: CompiledFunction, _ numArgs: Int) -> VirtualMachineError? {
-    guard numArgs == fn.numParameters else {
-      return .fnArity(fn.numParameters, numArgs)
+  private func callClosure(_ closure: Closure, _ numArgs: Int) -> VirtualMachineError? {
+    guard numArgs == closure.fn.numParameters else {
+      return .fnArity(closure.fn.numParameters, numArgs)
     }
-    let frame = Frame(fn: fn, basePointer: sp - numArgs)
+    let frame = Frame(closure: closure, basePointer: sp - numArgs)
     pushFrame(frame)
-    sp = frame.basePointer + fn.numLocals
+    sp = frame.basePointer + closure.fn.numLocals
     return nil
+  }
+
+  private func pushClosure(_ constIndex: Int) -> VirtualMachineError? {
+    let constant = constants[constIndex]
+    guard let fn = constant as? CompiledFunction else {
+      return .unexpectedObjectType
+    }
+    return push(Closure(fn: fn, free: []))
   }
 
   private func pushFrame(_ frame: Frame) {
@@ -422,7 +438,7 @@ enum VirtualMachineError: Swift.Error, CustomStringConvertible {
   case indexOperatorUnsupported(String)
   case fnArity(Int, Int)
   case invalidBuiltInFnIndex(Int)
-  case nonFunctionCall
+  case nonCallableCall
   case unknown
 
   var description: String {
@@ -449,8 +465,8 @@ enum VirtualMachineError: Swift.Error, CustomStringConvertible {
         return "wrong number of arguments: want=\(expected), got=\(actual)"
       case .invalidBuiltInFnIndex(let int):
         return "invalid built-in fn index: \(int)"
-      case .nonFunctionCall:
-        return "non function call"
+      case .nonCallableCall:
+        return "non callable (closure or builtIn) call"
       case .unknown:
         return "unknown error"
     }

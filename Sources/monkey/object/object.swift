@@ -9,6 +9,7 @@ enum ObjectType: String, CustomStringConvertible {
   case string
   case array
   case hash
+  case closure
   case returnValue = "return_value"
 
   var description: String {
@@ -119,6 +120,13 @@ struct CompiledFunction: Object {
   var numLocals: Int
   var numParameters: Int
   var inspect: String { "CompiledFunction" }
+}
+
+struct Closure: Object {
+  var type = ObjectType.closure
+  var fn: CompiledFunction
+  var free: [Object]
+  var inspect: String { "Closure" }
 }
 
 typealias BuiltInFn = (_ args: [Object]) -> Object

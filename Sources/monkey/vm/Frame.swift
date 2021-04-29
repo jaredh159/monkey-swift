@@ -1,11 +1,11 @@
 class Frame {
-  private(set) var fn: CompiledFunction
+  private(set) var closure: Closure
   private(set) var basePointer: Int
   var ip = -1
-  var instructions: Instructions { fn.instructions }
+  var instructions: Instructions { closure.fn.instructions }
 
-  init(fn: CompiledFunction, basePointer: Int) {
-    self.fn = fn
+  init(closure: Closure, basePointer: Int) {
+    self.closure = closure
     self.basePointer = basePointer
   }
 }

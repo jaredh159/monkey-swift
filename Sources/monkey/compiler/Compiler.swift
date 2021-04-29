@@ -243,7 +243,8 @@ class Compiler {
           numLocals: numLocals,
           numParameters: fnLit.parameters.count
         )
-        emit(opcode: .constant, operands: [addConstant(compiledFn)])
+        let fnIndex = addConstant(compiledFn)
+        emit(opcode: .closure, operands: [fnIndex, 0])
 
       case let returnStmt as ReturnStatement:
         if let err = compile(returnStmt.returnValue) {
