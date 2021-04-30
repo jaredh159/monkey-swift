@@ -201,6 +201,9 @@ class VirtualMachine {
           if let err = pushClosure(constIndex) {
             return err
           }
+
+        case .getFree:
+          fatalError("not implemented: .getFree")
       }
     }
     return nil

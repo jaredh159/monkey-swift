@@ -42,6 +42,7 @@ enum OpCode: UInt8 {
   case getGlobal
   case setLocal
   case getLocal
+  case getFree
   case getBuiltIn
   case array
   case hash
@@ -57,6 +58,8 @@ enum OpCode: UInt8 {
     switch self {
       case .closure:
         return Definition(name: "closure", operandWidths: [2, 1])
+      case .getFree:
+        return Definition(name: "getFree", operandWidths: [1])
       case .getBuiltIn:
         return Definition(name: "getBuiltIn", operandWidths: [1])
       case .hash:
