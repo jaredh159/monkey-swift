@@ -236,15 +236,19 @@ class Compiler {
         if lastInstruction.opcode != .returnValue {
           emit(opcode: .return)
         }
+        let freeSymbols = symbolTable.freeSymbols
         let numLocals = symbolTable.numDefinitions
         let instructions = leaveScope()
+        for free in freeSymbols {
+          loadSymbol(free)
+        }
         let compiledFn = CompiledFunction(
           instructions: instructions,
           numLocals: numLocals,
           numParameters: fnLit.parameters.count
         )
         let fnIndex = addConstant(compiledFn)
-        emit(opcode: .closure, operands: [fnIndex, 0])
+        emit(opcode: .closure, operands: [fnIndex, freeSymbols.count])
 
       case let returnStmt as ReturnStatement:
         if let err = compile(returnStmt.returnValue) {
@@ -340,6 +344,8 @@ class Compiler {
         emit(opcode: .getGlobal, operands: [symbol.index])
       case .builtIn:
         emit(opcode: .getBuiltIn, operands: [symbol.index])
+      case .free:
+        emit(opcode: .getFree, operands: [symbol.index])
     }
   }
 }

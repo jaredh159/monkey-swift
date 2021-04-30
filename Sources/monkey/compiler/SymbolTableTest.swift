@@ -170,5 +170,115 @@ func testSymbolTable() -> Bool {
     }
   }
 
+  test("resolve free") {
+    let global = SymbolTable()
+    global.define(name: "a")
+    global.define(name: "b")
+
+    let firstLocal = SymbolTable(enclosedBy: global)
+    firstLocal.define(name: "c")
+    firstLocal.define(name: "d")
+
+    let secondLocal = SymbolTable(enclosedBy: firstLocal)
+    secondLocal.define(name: "e")
+    secondLocal.define(name: "f")
+
+    let tests: [(SymbolTable, [Symbol], [Symbol])] = [
+      (
+        firstLocal,
+        [
+          Symbol(name: "a", scope: .global, index: 0),
+          Symbol(name: "b", scope: .global, index: 1),
+          Symbol(name: "c", scope: .local, index: 0),
+          Symbol(name: "d", scope: .local, index: 1),
+        ],
+        []
+      ),
+      (
+        secondLocal,
+        [
+          Symbol(name: "a", scope: .global, index: 0),
+          Symbol(name: "b", scope: .global, index: 1),
+          Symbol(name: "c", scope: .free, index: 0),
+          Symbol(name: "d", scope: .free, index: 1),
+          Symbol(name: "e", scope: .local, index: 0),
+          Symbol(name: "f", scope: .local, index: 1),
+        ],
+        [
+          Symbol(name: "c", scope: .local, index: 0),
+          Symbol(name: "d", scope: .local, index: 1),
+        ]
+      ),
+    ]
+    for (table, expectedSymbols, expectedFreeSymbols) in tests {
+      for expectedSymbol in expectedSymbols {
+        guard let result = table.resolve(name: expectedSymbol.name) else {
+          Test.pushFail("name \(expectedSymbol.name) not resolvable")
+          continue
+        }
+        guard expectedSymbol == result else {
+          Test.pushFail("unexpected symbol for name: \(expectedSymbol.name)")
+          continue
+        }
+      }
+      guard table.freeSymbols.count == expectedFreeSymbols.count else {
+        Test.pushFail(
+          "wrong number of free symbols, got=\(table.freeSymbols.count), want=\(expectedFreeSymbols.count)"
+        )
+        continue
+      }
+
+      for (actualFree, expectedFree) in zip(table.freeSymbols, expectedFreeSymbols) {
+        guard actualFree == expectedFree else {
+          Test.pushFail("wrong free symbol. got=\(actualFree), want=\(expectedFree)")
+          continue
+        }
+      }
+      Test.pushPass()
+    }
+  }
+
+  test("resolve unresolvable free") {
+    let global = SymbolTable()
+    global.define(name: "a")
+
+    let firstLocal = SymbolTable(enclosedBy: global)
+    firstLocal.define(name: "c")
+
+    let secondLocal = SymbolTable(enclosedBy: firstLocal)
+    secondLocal.define(name: "e")
+    secondLocal.define(name: "f")
+
+    let cases: [Symbol] = [
+      Symbol(name: "a", scope: .global, index: 0),
+      Symbol(name: "c", scope: .free, index: 0),
+      Symbol(name: "e", scope: .local, index: 0),
+      Symbol(name: "f", scope: .local, index: 1),
+    ]
+
+    for expectedSymbol in cases {
+      guard let result = secondLocal.resolve(name: expectedSymbol.name) else {
+        Test.pushFail("name \(expectedSymbol.name) not resolvable")
+        continue
+      }
+      guard expectedSymbol == result else {
+        Test.pushFail("expected a=\(expectedSymbol), got=\(result)")
+        continue
+      }
+      Test.pushPass()
+    }
+
+    if secondLocal.resolve(name: "b") != nil {
+      Test.pushFail("name `b` resolved, but was expected not to")
+    } else {
+      Test.pushPass()
+    }
+    if secondLocal.resolve(name: "d") != nil {
+      Test.pushFail("name `d` resolved, but was expected not to")
+    } else {
+      Test.pushPass()
+    }
+  }
+
   return Test.report()
 }

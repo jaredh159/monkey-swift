@@ -715,6 +715,133 @@ func testCompiler() -> Bool {
     ])
   }
 
+  test("closures") {
+    runCompilerTests([
+      CompilerTestCase(
+        input: """
+          fn(a) {
+            fn(b) {
+              a + b
+            }
+          }
+          """,
+        expectedConstants: [
+          [
+            make(.getFree, [0]),
+            make(.getLocal, [0]),
+            make(.add),
+            make(.returnValue),
+          ],
+          [
+            make(.getLocal, [0]),
+            make(.closure, [0, 1]),
+            make(.returnValue),
+          ],
+        ],
+        expectedInstructions: [
+          make(.closure, [1, 0]),
+          make(.pop),
+        ]
+      ),
+      CompilerTestCase(
+        input: """
+          fn(a) {
+            fn(b) {
+              fn(c) {
+                a + b + c
+              }
+            }
+          }
+          """,
+        expectedConstants: [
+          [
+            make(.getFree, [0]),
+            make(.getFree, [1]),
+            make(.add),
+            make(.getLocal, [0]),
+            make(.add),
+            make(.returnValue),
+          ],
+          [
+            make(.getFree, [0]),
+            make(.getLocal, [0]),
+            make(.closure, [0, 2]),
+            make(.returnValue),
+          ],
+          [
+            make(.getLocal, [0]),
+            make(.closure, [1, 1]),
+            make(.returnValue),
+          ],
+        ],
+        expectedInstructions: [
+          make(.closure, [2, 0]),
+          make(.pop),
+        ]
+      ),
+      CompilerTestCase(
+        // finish changing over this test from page 249
+        input: """
+          let global = 55;
+
+          fn() {
+            let a = 66;
+
+            fn() {
+
+              let b = 77;
+
+              fn() {
+                let c = 88;
+
+                global + a + b + c;
+              }
+            }
+          }
+          """,
+        expectedConstants: [
+          55,
+          66,
+          77,
+          88,
+          [
+            make(.constant, [3]),
+            make(.setLocal, [0]),
+            make(.getGlobal, [0]),
+            make(.getFree, [0]),
+            make(.add),
+            make(.getFree, [1]),
+            make(.add),
+            make(.getLocal, [0]),
+            make(.add),
+            make(.returnValue),
+          ],
+          [
+            make(.constant, [2]),
+            make(.setLocal, [0]),
+            make(.getFree, [0]),
+            make(.getLocal, [0]),
+            make(.closure, [4, 2]),
+            make(.returnValue),
+          ],
+          [
+            make(.constant, [1]),
+            make(.setLocal, [0]),
+            make(.getLocal, [0]),
+            make(.closure, [5, 1]),
+            make(.returnValue),
+          ],
+        ],
+        expectedInstructions: [
+          make(.constant, [0]),
+          make(.setGlobal, [0]),
+          make(.closure, [6, 0]),
+          make(.pop),
+        ]
+      ),
+    ])
+  }
+
   return Test.report()
 }
 
