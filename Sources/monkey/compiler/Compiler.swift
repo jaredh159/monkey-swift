@@ -145,10 +145,10 @@ class Compiler {
         }
 
       case let letStmt as LetStatement:
+        let symbol = symbolTable.define(name: letStmt.name.value)
         if let err = compile(letStmt.value) {
           return err
         }
-        let symbol = symbolTable.define(name: letStmt.name.value)
         let opcode: OpCode = symbol.scope == .global ? .setGlobal : .setLocal
         emit(opcode: opcode, operands: [symbol.index])
 
@@ -224,6 +224,9 @@ class Compiler {
 
       case let fnLit as FunctionLiteral:
         enterScope()
+        if let name = fnLit.name {
+          symbolTable.defineFunction(name: name)
+        }
         for param in fnLit.parameters {
           symbolTable.define(name: param.value)
         }
@@ -346,6 +349,8 @@ class Compiler {
         emit(opcode: .getBuiltIn, operands: [symbol.index])
       case .free:
         emit(opcode: .getFree, operands: [symbol.index])
+      case .function:
+        emit(opcode: .currentClosure)
     }
   }
 }

@@ -84,8 +84,12 @@ class Parser {
       return nil
     }
     nextToken()
-    guard let value = parseExpression(precedence: .LOWEST) else {
+    guard var value = parseExpression(precedence: .LOWEST) else {
       return nil
+    }
+    if let fn = value as? FunctionLiteral {
+      value = FunctionLiteral(
+        token: fn.token, parameters: fn.parameters, body: fn.body, name: name.value)
     }
     if peekTokenIs(.SEMICOLON) {
       nextToken()

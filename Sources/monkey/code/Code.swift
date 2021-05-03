@@ -50,6 +50,7 @@ enum OpCode: UInt8 {
   case call
   case returnValue
   case closure
+  case currentClosure
   case `return`
   case `true`
   case `false`
@@ -58,6 +59,8 @@ enum OpCode: UInt8 {
     switch self {
       case .closure:
         return Definition(name: "closure", operandWidths: [2, 1])
+      case .currentClosure:
+        return Definition(name: "currentClosure", operandWidths: [])
       case .getFree:
         return Definition(name: "getFree", operandWidths: [1])
       case .getBuiltIn:

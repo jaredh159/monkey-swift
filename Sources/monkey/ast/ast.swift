@@ -144,10 +144,11 @@ struct FunctionLiteral: HasToken, Expression {
   var token: Token
   var parameters: [Identifier] = []
   var body: BlockStatement
+  var name: String?
 
   var string: String {
     let params = parameters.map { $0.string }.joined(separator: ", ")
-    return "\(tokenLiteral) (\(params)) \(body)"
+    return "\(name == nil ? "" : "<\(name!)>")\(tokenLiteral) (\(params)) \(body)"
   }
 }
 

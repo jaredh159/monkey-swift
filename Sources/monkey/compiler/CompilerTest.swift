@@ -842,6 +842,73 @@ func testCompiler() -> Bool {
     ])
   }
 
+  test("recursive functions") {
+    runCompilerTests([
+      CompilerTestCase(
+        input: """
+          let countDown = fn(x) { countDown(x - 1); };
+          countDown(1);
+          """,
+        expectedConstants: [
+          1,
+          [
+            make(.currentClosure),
+            make(.getLocal, [0]),
+            make(.constant, [0]),
+            make(.sub),
+            make(.call, [1]),
+            make(.returnValue),
+          ],
+          1,
+        ],
+        expectedInstructions: [
+          make(.closure, [1, 0]),
+          make(.setGlobal, [0]),
+          make(.getGlobal, [0]),
+          make(.constant, [2]),
+          make(.call, [1]),
+          make(.pop),
+        ]
+      ),
+      CompilerTestCase(
+        input: """
+          let wrapper = fn() {
+            let countDown = fn(x) { countDown(x - 1); };
+            countDown(1);
+          };
+          wrapper();
+          """,
+        expectedConstants: [
+          1,
+          [
+            make(.currentClosure),
+            make(.getLocal, [0]),
+            make(.constant, [0]),
+            make(.sub),
+            make(.call, [1]),
+            make(.returnValue),
+          ],
+          1,
+          [
+            make(.closure, [1, 0]),
+            make(.setLocal, [0]),
+            make(.getLocal, [0]),
+            make(.constant, [2]),
+            make(.call, [1]),
+            make(.returnValue),
+          ],
+        ],
+        expectedInstructions: [
+          make(.closure, [3, 0]),
+          make(.setGlobal, [0]),
+          make(.getGlobal, [0]),
+          make(.call, [0]),
+          make(.pop),
+        ]
+      ),
+    ])
+  }
+
   return Test.report()
 }
 
