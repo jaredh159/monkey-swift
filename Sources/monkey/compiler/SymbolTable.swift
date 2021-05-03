@@ -3,6 +3,7 @@ enum SymbolScope: String {
   case local = "LOCAL"
   case builtIn = "BUILTIN"
   case free = "FREE"
+  case function = "FUNCTION"
 }
 
 struct Symbol: Equatable {
@@ -32,6 +33,13 @@ class SymbolTable {
     let free = Symbol(name: original.name, scope: .free, index: freeSymbols.count - 1)
     store[original.name] = free
     return free
+  }
+
+  @discardableResult
+  func defineFunction(name: String) -> Symbol {
+    let fn = Symbol(name: name, scope: .function, index: 0)
+    store[name] = fn
+    return fn
   }
 
   @discardableResult

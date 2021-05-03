@@ -196,14 +196,24 @@ class VirtualMachine {
 
         case .closure:
           let constIndex = intFromUInt16Operand(ip)
-          _ = intFromUInt8Operand(ip + 2)  // I think +2 is correct
+          let numFree = intFromUInt8Operand(ip + 2)
           ip += 3
-          if let err = pushClosure(constIndex) {
+          if let err = pushClosure(constIndex, numFree) {
             return err
           }
 
         case .getFree:
-          fatalError("not implemented: .getFree")
+          let freeIndex = intFromUInt8Operand(ip)
+          ip += 1
+          let currentClosure = currentFrame.closure
+          if let err = push(currentClosure.free[freeIndex]) {
+            return err
+          }
+
+        case .currentClosure:
+          if let err = push(currentFrame.closure) {
+            return err
+          }
       }
     }
     return nil
@@ -238,12 +248,19 @@ class VirtualMachine {
     return nil
   }
 
-  private func pushClosure(_ constIndex: Int) -> VirtualMachineError? {
+  private func pushClosure(_ constIndex: Int, _ numFree: Int) -> VirtualMachineError? {
     let constant = constants[constIndex]
     guard let fn = constant as? CompiledFunction else {
       return .unexpectedObjectType
     }
-    return push(Closure(fn: fn, free: []))
+
+    var free: [Object] = []
+    for i in 0..<numFree {
+      free.append(stack[sp - numFree + i]!)
+    }
+    sp -= numFree
+
+    return push(Closure(fn: fn, free: free))
   }
 
   private func pushFrame(_ frame: Frame) {

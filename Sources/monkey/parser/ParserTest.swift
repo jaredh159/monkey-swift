@@ -445,6 +445,20 @@ func testParser() -> Bool {
     }
   }
 
+  test("function literal with name") {
+    let input = "let myFunction = fn() { };"
+    guard let statements = expectStatements(input, 1) else {
+      return
+    }
+    guard let letStmt = expect(statements[0]).toBe(LetStatement.self) else {
+      return
+    }
+    guard let fnLit = expect(letStmt.value).toBe(FunctionLiteral.self) else {
+      return
+    }
+    expect(fnLit.name).toEqual("myFunction")
+  }
+
   return Test.report()
 }
 

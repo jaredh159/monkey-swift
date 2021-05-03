@@ -280,5 +280,38 @@ func testSymbolTable() -> Bool {
     }
   }
 
+  test("define and resolve fn name") {
+    let global = SymbolTable()
+    global.defineFunction(name: "a")
+
+    let expected = Symbol(name: "a", scope: .function, index: 0)
+    guard let resolved = global.resolve(name: "a") else {
+      Test.pushFail("function name `a` not resolved")
+      return
+    }
+    guard expected == resolved else {
+      Test.pushFail("expected a=\(expected), got=\(resolved)")
+      return
+    }
+    Test.pushPass()
+  }
+
+  test("shadowing function name") {
+    let global = SymbolTable()
+    global.defineFunction(name: "a")
+    global.define(name: "a")
+
+    let expected = Symbol(name: "a", scope: .global, index: 0)
+    guard let resolved = global.resolve(name: "a") else {
+      Test.pushFail("function name `a` not resolved")
+      return
+    }
+    guard expected == resolved else {
+      Test.pushFail("expected a=\(expected), got=\(resolved)")
+      return
+    }
+    Test.pushPass()
+  }
+
   return Test.report()
 }
