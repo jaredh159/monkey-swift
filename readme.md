@@ -1,7 +1,7 @@
 # monkey-swift
 
-my [second time](https://github.com/jaredh159/monkey-c) writing an intepreter for thorsten ball's monkey language,
-this time in **Swift**
+my [second time](https://github.com/jaredh159/monkey-c) writing an intepreter for thorsten
+ball's monkey language, this time in **Swift**
 
 [https://interpreterbook.com/](https://interpreterbook.com/)
 
@@ -16,13 +16,17 @@ $ swift run monkey eval "1 + 2"
 # > 3
 
 # run ALL unit tests
-$ swift run monkey test
+$ swift run monkey test all
 
 # run individual test suites
 $ swift run monkey test ast
 $ swift run monkey test lexer
 $ swift run monkey test parser
 $ swift run monkey test eval
+$ swift run monkey test symbol
+$ swift run monkey test code
+$ swift run monkey test vm
+$ swift run monkey test compiler
 
 # run binary unit test
 $ swift test
